@@ -1,0 +1,2742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KRI Data Builder</title>
+<style>
+:root {
+  --blue:#1a56db; --blue-l:#e8f0fe; --blue-d:#1a3a8f;
+  --green:#16a34a; --green-l:#dcfce7;
+  --yellow:#ca8a04; --yellow-l:#fef9c3;
+  --red:#dc2626; --red-l:#fee2e2;
+  --gray-50:#f9fafb; --gray-100:#f3f4f6; --gray-200:#e5e7eb;
+  --gray-300:#d1d5db; --gray-400:#9ca3af; --gray-500:#6b7280;
+  --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+  --r:8px; --sh:0 1px 3px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--gray-50);color:var(--gray-800);line-height:1.5;min-height:100vh}
+#app{max-width:900px;margin:0 auto;padding:24px 16px 80px}
+
+/* Header */
+header{background:#fff;border-bottom:1px solid var(--gray-200);padding:0 16px;position:sticky;top:0;z-index:100}
+.hdr{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px}
+.hdr-title{font-size:15px;font-weight:700;color:var(--gray-800)}
+.hdr-sub{font-size:12px;color:var(--gray-500)}
+.badge{font-size:11px;font-weight:600;padding:2px 10px;border-radius:99px;background:var(--blue-l);color:var(--blue)}
+
+/* Progress */
+#progress{background:#fff;border-bottom:1px solid var(--gray-200);padding:12px 16px;position:sticky;top:54px;z-index:99}
+.prog-inner{max-width:900px;margin:0 auto}
+.prog-steps{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+.sdot{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-400);cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s;white-space:nowrap}
+.sdot:hover{background:var(--gray-100)}
+.sdot.active{color:var(--blue);font-weight:700}
+.sdot.done{color:var(--green)}
+.sdot .dot{width:20px;height:20px;border-radius:50%;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.sdot.active .dot{background:var(--blue);color:#fff}
+.sdot.done .dot{background:var(--green);color:#fff}
+.ssep{color:var(--gray-300);font-size:11px}
+.prog-track{height:3px;background:var(--gray-200);border-radius:99px;margin-top:8px}
+.prog-fill{height:100%;background:var(--blue);border-radius:99px;transition:width .3s}
+
+/* Steps */
+.step{display:none;animation:fi .2s ease}
+.step.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Step headers */
+.step-hdr{margin:24px 0 16px;display:flex;align-items:center;gap:12px}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.step-title{font-size:18px;font-weight:700}
+.step-sub{font-size:13px;color:var(--gray-500);margin-top:1px}
+
+/* Cards */
+.card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--r);padding:20px;margin-bottom:12px;box-shadow:var(--sh)}
+.card.highlight{border-color:var(--blue);background:var(--blue-l)}
+.card.warn{border-color:#fbbf24}
+.card.error{border-color:var(--red)}
+
+.q-label{font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.req{color:var(--red);font-size:12px}
+.q-help{font-size:12px;color:var(--gray-500);margin-bottom:10px}
+.note{font-size:12px;color:var(--gray-500);background:var(--gray-50);border-left:3px solid var(--gray-300);padding:8px 12px;border-radius:0 6px 6px 0;margin-top:8px}
+.note.info{border-color:var(--blue);background:var(--blue-l);color:#1e3a5f}
+.note.warn{border-color:#fbbf24;background:var(--yellow-l);color:#78350f}
+.note.good{border-color:var(--green);background:var(--green-l);color:#14532d}
+
+/* Inputs */
+input[type=text],input[type=number],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:14px;font-family:inherit;color:var(--gray-800);background:#fff;outline:none;transition:border-color .15s}
+input:focus,textarea:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+textarea{resize:vertical;min-height:72px}
+.ferr{font-size:12px;color:var(--red);margin-top:5px;display:none}
+
+/* Options */
+.opt-grid{display:flex;flex-direction:column;gap:7px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--gray-200);border-radius:6px;cursor:pointer;transition:all .15s;background:#fff}
+.opt:hover{border-color:var(--blue);background:var(--blue-l)}
+.opt.sel{border-color:var(--blue);background:var(--blue-l)}
+.opt input[type=radio],.opt input[type=checkbox]{width:auto;margin-top:2px;flex-shrink:0;accent-color:var(--blue)}
+.opt-lbl{font-size:14px;font-weight:500}
+.opt-desc{font-size:12px;color:var(--gray-500);margin-top:1px}
+
+/* Data table */
+.data-table-wrap{overflow-x:auto;margin-top:10px}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.data-tbl th{background:var(--blue);color:#fff;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap}
+table.data-tbl td{padding:6px 6px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+table.data-tbl tr:nth-child(even) td{background:var(--gray-50)}
+table.data-tbl td input{padding:5px 8px;font-size:13px;border-radius:4px}
+table.data-tbl td.computed{font-weight:600;color:var(--blue);text-align:center;font-size:13px;background:var(--blue-l)!important;border-radius:4px;padding:5px 8px}
+table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!important}
+.del-btn{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px;transition:color .15s}
+.del-btn:hover{color:var(--red)}
+.add-row-btn{margin-top:10px;background:#fff;border:1px dashed var(--blue);color:var(--blue);padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;width:100%;transition:all .15s}
+.add-row-btn:hover{background:var(--blue-l)}
+
+/* Data status bar */
+.data-status{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;padding:12px;background:var(--gray-50);border-radius:6px;border:1px solid var(--gray-200)}
+.ds-item{font-size:12px;color:var(--gray-600)}
+.ds-val{font-weight:700;color:var(--gray-800)}
+.ds-val.ok{color:var(--green)}
+.ds-val.warn{color:var(--yellow)}
+.ds-val.bad{color:var(--red)}
+
+/* Method cards */
+.method-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+.method-card{border:2px solid var(--gray-200);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s;background:#fff;position:relative}
+.method-card:hover{border-color:var(--blue);background:var(--blue-l)}
+.method-card.sel{border-color:var(--blue);background:var(--blue-l)}
+.method-card.sel::after{content:"✓";position:absolute;top:10px;right:12px;color:var(--blue);font-weight:700;font-size:16px}
+.method-card .mc-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--blue);margin-bottom:6px}
+.method-card .mc-name{font-size:15px;font-weight:700;margin-bottom:4px}
+.method-card .mc-formula{font-family:'SF Mono',Consolas,monospace;font-size:12px;background:rgba(26,86,219,.08);padding:6px 10px;border-radius:4px;margin:8px 0;color:var(--blue-d)}
+.method-card .mc-desc{font-size:12px;color:var(--gray-500)}
+.method-card .mc-preview{margin-top:10px}
+.method-card.disabled{opacity:.4;pointer-events:none}
+
+/* Mini chart in method card */
+.mini-chart{width:100%;height:60px}
+
+/* Main SVG chart */
+#chart-wrap{background:#fff;border:1px solid var(--gray-200);border-radius:var(--r);padding:16px;margin-bottom:16px}
+#main-chart{width:100%;height:260px;display:block}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12px}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-dot{width:10px;height:10px;border-radius:50%}
+.leg-line{width:20px;height:3px;border-radius:2px}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid var(--gray-200);border-radius:var(--r);padding:14px;box-shadow:var(--sh)}
+.stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:700;color:var(--gray-800)}
+.stat-sub{font-size:11px;color:var(--gray-500);margin-top:2px}
+.stat-val.up{color:var(--red)}
+.stat-val.down{color:var(--green)}
+.stat-val.flat{color:var(--yellow)}
+
+/* Threshold table */
+.thr-table{width:100%;border-collapse:collapse;font-size:13px}
+.thr-table th{text-align:left;padding:8px 10px;font-size:12px;font-weight:600;color:var(--gray-500);border-bottom:1px solid var(--gray-200)}
+.thr-table td{padding:8px 10px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+.thr-table input[type=number]{width:100px;padding:5px 8px}
+.thr-badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.green-b{background:var(--green-l);color:#15803d}
+.yellow-b{background:#fef9c3;color:#854d0e}
+.red-b{background:var(--red-l);color:#b91c1c}
+
+/* Distribution bar */
+.dist-bar{height:16px;background:linear-gradient(to right,var(--green-l) 0%,var(--green-l) var(--pY),#fef9c3 var(--pY),#fef9c3 var(--pR),var(--red-l) var(--pR),var(--red-l) 100%);border-radius:99px;position:relative;margin:4px 0}
+.dist-tick{position:absolute;top:-16px;font-size:10px;color:var(--gray-600);transform:translateX(-50%)}
+
+/* Trend analysis */
+.trend-block{display:flex;align-items:center;gap:10px;padding:12px;border-radius:6px;margin-bottom:8px}
+.trend-icon{font-size:24px;flex-shrink:0}
+.trend-label{font-size:14px;font-weight:600}
+.trend-desc{font-size:12px;color:var(--gray-600)}
+
+/* Threshold format toggle */
+.thr-fmt-toggle{display:flex;gap:8px;margin-bottom:12px}
+.thr-fmt-btn{padding:6px 14px;border:1px solid var(--gray-300);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--gray-600);transition:all .15s}
+.thr-fmt-btn.sel{border-color:var(--blue);background:var(--blue-l);color:var(--blue)}
+.thr-table textarea{width:100%;min-height:48px;padding:5px 8px;font-size:12px;resize:vertical;border:1px solid var(--gray-300);border-radius:4px;font-family:inherit}
+.thr-table .range-inputs{display:flex;gap:4px;align-items:center}
+.thr-table .range-inputs input{width:80px}
+.thr-table .range-sep{font-size:11px;color:var(--gray-400)}
+
+/* Metric relationships */
+.rel-radio-group{display:flex;gap:8px;margin:8px 0 12px}
+.rel-radio{padding:6px 16px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;cursor:pointer;background:#fff;transition:all .15s}
+.rel-radio:hover{border-color:var(--blue);background:var(--blue-l)}
+.rel-radio.sel{border-color:var(--blue);background:var(--blue-l);font-weight:600;color:var(--blue)}
+.rel-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.rel-table th{text-align:left;padding:6px 8px;font-size:11px;font-weight:600;color:var(--gray-500);background:var(--gray-50);border-bottom:1px solid var(--gray-200)}
+.rel-table td{padding:6px 6px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+.rel-table input,.rel-table select,.rel-table textarea{width:100%;padding:5px 8px;font-size:12px;border:1px solid var(--gray-300);border-radius:4px;font-family:inherit}
+.rel-table textarea{min-height:36px;resize:vertical}
+.add-rel-btn{margin-top:8px;background:#fff;border:1px dashed var(--blue);color:var(--blue);padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.add-rel-btn:hover{background:var(--blue-l)}
+.del-rel-btn{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px}
+.del-rel-btn:hover{color:var(--red)}
+
+/* Stress scenarios */
+.stress-grid{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.stress-row{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:6px}
+.stress-label{font-size:13px;font-weight:600;color:var(--gray-700);min-width:200px;flex-shrink:0;padding-top:5px}
+.stress-row textarea{flex:1;min-height:48px;padding:6px 10px;font-size:12px;border:1px solid var(--gray-300);border-radius:4px;font-family:inherit;resize:vertical}
+
+/* Reporting period */
+.rpt-grid{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+
+/* Output panel */
+#output-panel{display:none;animation:fi .3s ease}
+#output-panel.show{display:block}
+.out-hdr{background:var(--green);color:#fff;border-radius:var(--r) var(--r) 0 0;padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+.out-hdr h2{font-size:17px;font-weight:700}
+.out-body{background:#fff;border:1px solid var(--gray-200);border-top:none;border-radius:0 0 var(--r) var(--r);padding:24px}
+.out-sec{margin-bottom:28px}
+.out-sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);padding-bottom:8px;border-bottom:2px solid var(--gray-200);margin-bottom:12px}
+.out-field{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:13px}
+.out-field:last-child{border:none}
+.out-key{color:var(--gray-500);min-width:240px;flex-shrink:0}
+.out-val{color:var(--gray-800);font-weight:500}
+.out-formula{font-family:'SF Mono',Consolas,monospace;font-size:13px;background:var(--blue-l);padding:10px 14px;border-radius:6px;color:var(--blue-d);margin:6px 0}
+
+/* Nav */
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--gray-200)}
+.btn{padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.btn-prev{background:#fff;color:var(--gray-700);border:1px solid var(--gray-300)}
+.btn-prev:hover{background:var(--gray-50)}
+.btn-next{background:var(--blue);color:#fff}
+.btn-next:hover{background:var(--blue-d)}
+.btn-gen{background:var(--green);color:#fff}
+.btn-gen:hover{background:#15803d}
+.btn-dl{background:#fff;color:var(--green);border:none;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}
+.btn-dl:hover{background:var(--gray-100)}
+.btn-restart{background:#fff;color:var(--gray-700);border:1px solid var(--gray-300);padding:10px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:16px}
+.exp-card{background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--r);padding:18px;margin-top:14px}
+.exp-title{font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.exp-section{margin-bottom:14px}
+.exp-sub{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--gray-500);margin-bottom:6px}
+.exp-rationale{font-size:13px;color:var(--gray-600);line-height:1.6;background:#fff;border-left:3px solid var(--blue);padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:10px}
+.exp-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
+.exp-tbl th{background:var(--gray-700);color:#fff;padding:6px 10px;text-align:left;font-weight:600}
+.exp-tbl td{padding:6px 10px;border-bottom:1px solid var(--gray-200);vertical-align:top}
+.exp-tbl tr.green-row td{background:#f0fdf4}
+.exp-tbl tr.red-row td{background:#fff1f2}
+.exp-tbl tr.yellow-row td{background:#fefce8}
+.band-bar{height:22px;border-radius:4px;display:flex;overflow:hidden;margin:6px 0}
+.band-seg{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;transition:width .4s}
+.override-tag{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;background:#fef9c3;color:#854d0e;margin-left:4px}
+.calc-tag{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px;background:var(--green-l);color:#15803d;margin-left:4px}
+.reset-btn{background:#fff;border:1px solid var(--gray-300);color:var(--gray-600);font-size:12px;font-weight:500;padding:4px 12px;border-radius:6px;cursor:pointer;float:right;margin-top:-2px}
+.reset-btn:hover{background:var(--gray-50);border-color:var(--gray-400)}
+
+/* Validation */
+#val-panel{display:none;background:var(--red-l);border:1px solid var(--red);border-radius:var(--r);padding:14px;margin-bottom:14px}
+#val-panel.show{display:block}
+.val-title{font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px}
+.val-item{font-size:12px;color:#991b1b;padding:2px 0}
+
+/* Period table in output */
+.period-tbl{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0}
+.period-tbl th{background:var(--gray-100);padding:6px 8px;text-align:left;font-weight:600;font-size:11px;color:var(--gray-600);border-bottom:1px solid var(--gray-200)}
+.period-tbl td{padding:5px 8px;border-bottom:1px solid var(--gray-100)}
+.period-tbl tr:last-child td{border:none}
+.rag-g{color:var(--green);font-weight:600}
+.rag-y{color:var(--yellow);font-weight:600}
+.rag-r{color:var(--red);font-weight:600}
+
+/* Risk Impact Strength */
+.impact-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.impact-tbl th{text-align:left;padding:8px 10px;font-size:12px;font-weight:600;color:var(--gray-500);border-bottom:2px solid var(--gray-200);background:var(--gray-50)}
+.impact-tbl td{padding:8px 10px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+.impact-tbl select{padding:6px 10px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;background:#fff;color:var(--gray-800);width:auto;min-width:160px}
+.impact-pct{font-weight:700;font-size:14px;min-width:50px;text-align:center}
+.impact-summary{margin-top:14px;padding:14px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--r);font-size:13px}
+
+@media(max-width:600px){
+  .method-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .out-field{flex-direction:column}
+  .out-key{min-width:auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">KRI Data Builder</div>
+      <div class="hdr-sub">Build your metric from real data</div>
+    </div>
+    <div class="badge">Data-Driven</div>
+  </div>
+</header>
+
+<div id="progress">
+  <div class="prog-inner">
+    <div class="prog-steps" id="step-dots"></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="val-panel"><div class="val-title">⚠ Please fix the following:</div><div id="val-list"></div></div>
+
+  <!-- ══ STEP 1: BASICS ══ -->
+  <div class="step active" id="step-1">
+    <div class="step-hdr">
+      <div class="step-num">1</div>
+      <div><div class="step-title">What Are You Measuring?</div><div class="step-sub">Identify the metric and the risk it signals</div></div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Metric Name <span class="req">*</span></div>
+      <div class="q-help">A clear, specific name. Avoid acronyms.</div>
+      <input type="text" id="q-name" placeholder="e.g. Escalated Complaints Past SLA Rate" oninput="clearErr('err-name')">
+      <div class="ferr" id="err-name">Metric name is required.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Plain Language Description <span class="req">*</span></div>
+      <div class="q-help">1–2 sentences: what is being counted, and what does a rising number mean?</div>
+      <textarea id="q-desc" placeholder="e.g. Tracks the percentage of complaints unresolved past our 5-day SLA. Rising numbers indicate we're falling behind, which typically precedes regulatory inquiries." oninput="clearErr('err-desc')"></textarea>
+      <div class="ferr" id="err-desc">Description is required.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Risk Statement <span class="req">*</span></div>
+      <div class="q-help">Complete the sentence: <strong>Because of [CAUSE], there is a risk that [EVENT] could occur, which would result in [IMPACT].</strong></div>
+      <textarea id="q-risk" placeholder="Because of [cause], there is a risk that [event] could occur, which would result in [impact]." rows="2" oninput="clearErr('err-risk')"></textarea>
+      <div class="ferr" id="err-risk">Risk statement is required.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Primary Risk Category <span class="req">*</span></div>
+      <div class="opt-grid" id="risk-cat-grid"></div>
+      <div class="ferr" id="err-cat">Please select a risk category.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">What is this metric trying to catch? <span class="req">*</span></div>
+      <div class="opt-grid">
+        <label class="opt" onclick="selR('q-signal','events',this)"><input type="radio" name="q-signal" value="events"><div><div class="opt-lbl">More events happening</div><div class="opt-desc">Incidents, errors, or issues are increasing</div></div></label>
+        <label class="opt" onclick="selR('q-signal','exposure',this)"><input type="radio" name="q-signal" value="exposure"><div><div class="opt-lbl">Exposure growing</div><div class="opt-desc">More things are at risk or uncovered</div></div></label>
+        <label class="opt" onclick="selR('q-signal','delay',this)"><input type="radio" name="q-signal" value="delay"><div><div class="opt-lbl">Things taking too long</div><div class="opt-desc">Backlogs, delays, or aging items building up</div></div></label>
+        <label class="opt" onclick="selR('q-signal','recurrence',this)"><input type="radio" name="q-signal" value="recurrence"><div><div class="opt-lbl">Same problems recurring</div><div class="opt-desc">Systemic issues — same root cause repeating</div></div></label>
+        <label class="opt" onclick="selR('q-signal','concentration',this)"><input type="radio" name="q-signal" value="concentration"><div><div class="opt-lbl">Concentration building</div><div class="opt-desc">Over-reliance on one vendor, product, or channel</div></div></label>
+        <label class="opt" onclick="selR('q-signal','severity',this)"><input type="radio" name="q-signal" value="severity"><div><div class="opt-lbl">Severity increasing</div><div class="opt-desc">Impacts are getting worse, not just more frequent</div></div></label>
+      </div>
+      <div class="ferr" id="err-signal">Please select what this metric detects.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Direction of Risk</div>
+      <div class="q-help">For most KRIs, a higher value = more risk. Flip this for coverage ratios, liquidity ratios, etc.</div>
+      <div class="opt-grid">
+        <label class="opt sel" onclick="selR('q-dir','higher',this)"><input type="radio" name="q-dir" value="higher" checked><div><div class="opt-lbl">Higher is worse</div><div class="opt-desc">Default — complaint rate, error %, backlog count</div></div></label>
+        <label class="opt" onclick="selR('q-dir','lower',this)"><input type="radio" name="q-dir" value="lower"><div><div class="opt-lbl">Lower is worse</div><div class="opt-desc">Coverage ratio, staffing level, liquidity buffer</div></div></label>
+      </div>
+    </div>
+
+    <div class="nav"><div></div><button class="btn btn-next" onclick="nextStep(1)">Next: Enter Data →</button></div>
+  </div>
+
+  <!-- ══ STEP 2: DATA ENTRY ══ -->
+  <div class="step" id="step-2">
+    <div class="step-hdr">
+      <div class="step-num">2</div>
+      <div><div class="step-title">Enter Your Historical Data</div><div class="step-sub">Minimum 6 months required — more data = better thresholds</div></div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">What is your numerator? <span class="req">*</span></div>
+      <div class="q-help">The event, incident, or quantity you are counting or measuring each period.</div>
+      <input type="text" id="q-num-label" placeholder="e.g. Escalated complaints past 5-day SLA" oninput="updateTableHeaders()">
+    </div>
+
+    <div class="card" id="denom-card">
+      <div class="q-label">Do you have a denominator (population)?</div>
+      <div class="q-help">A denominator normalizes the count — e.g., complaints <em>per 1,000 customers</em>. Leave blank if you just want a count.</div>
+      <div class="opt-grid">
+        <label class="opt sel" onclick="selR('q-hasdenom','yes',this);toggleDenomCol(true)"><input type="radio" name="q-hasdenom" value="yes" checked><div><div class="opt-lbl">Yes — I have a population base</div><div class="opt-desc">e.g. total customers, total transactions, total vendors</div></div></label>
+        <label class="opt" onclick="selR('q-hasdenom','no',this);toggleDenomCol(false)"><input type="radio" name="q-hasdenom" value="no"><div><div class="opt-lbl">No — Count only</div><div class="opt-desc">Any occurrence matters regardless of volume</div></div></label>
+      </div>
+      <div id="denom-label-row" style="margin-top:12px">
+        <input type="text" id="q-denom-label" placeholder="e.g. Total active customer accounts" oninput="updateTableHeaders()">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Period Data <span class="req">*</span></div>
+      <div class="q-help">Enter one row per reporting period. Label each period clearly (e.g., "Jan 2024"). Minimum 6 periods.</div>
+      <div class="data-table-wrap">
+        <table class="data-tbl" id="data-table">
+          <thead id="data-thead">
+            <tr>
+              <th style="width:130px">#</th>
+              <th style="width:130px" id="th-num">Numerator</th>
+              <th style="width:130px" id="th-denom">Denominator</th>
+              <th style="width:110px" id="th-computed">Computed Value</th>
+              <th style="width:40px"></th>
+            </tr>
+          </thead>
+          <tbody id="data-tbody"></tbody>
+        </table>
+      </div>
+      <button class="add-row-btn" onclick="addRow()">+ Add Period</button>
+      <div class="ferr" id="err-data"></div>
+
+      <div class="data-status" id="data-status">
+        <div class="ds-item">Periods entered: <span class="ds-val" id="ds-count">0</span></div>
+        <div class="ds-item">Minimum required: <span class="ds-val">6</span></div>
+        <div class="ds-item">Coverage: <span class="ds-val" id="ds-coverage">—</span></div>
+        <div class="ds-item">Numerator range: <span class="ds-val" id="ds-range">—</span></div>
+      </div>
+    </div>
+
+    <div class="note info">
+      💡 <strong>Tip:</strong> More data = more reliable thresholds. 12+ months enables full trend and slope analysis. Enter data in chronological order (oldest first).
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-prev" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-next" onclick="nextStep(2)">Next: Choose Calculation →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3: CALCULATION METHOD ══ -->
+  <div class="step" id="step-3">
+    <div class="step-hdr">
+      <div class="step-num">3</div>
+      <div><div class="step-title">Choose Your Calculation Method</div><div class="step-sub">Select the formula that best represents what you're measuring</div></div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Which calculation best represents your metric? <span class="req">*</span></div>
+      <div class="q-help">Each option shows a preview of your actual data. Pick the one that makes the most intuitive sense for what you're tracking.</div>
+      <div class="ferr" id="err-method">Please select a calculation method.</div>
+      <div class="method-grid" id="method-grid"></div>
+    </div>
+
+    <div class="card" id="method-preview-card" style="display:none">
+      <div class="q-label">Your Data Preview — <span id="preview-method-name" style="color:var(--blue)"></span></div>
+      <div id="preview-chart-wrap"></div>
+      <div id="preview-data-table" style="margin-top:12px"></div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-prev" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-next" onclick="nextStep(3)">Next: Analysis & Thresholds →</button>
+    </div>
+  </div>
+
+  <!-- ══ STEP 4: ANALYSIS ══ -->
+  <div class="step" id="step-4">
+    <div class="step-hdr">
+      <div class="step-num">4</div>
+      <div><div class="step-title">Analysis & Thresholds</div><div class="step-sub">Derived from your data — review and adjust as needed</div></div>
+    </div>
+
+    <!-- Chart -->
+    <div id="chart-wrap">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--gray-700)" id="chart-title">Metric History with Threshold Bands</div>
+      <svg id="main-chart"></svg>
+      <div class="chart-legend">
+        <div class="leg-item"><div class="leg-line" style="background:var(--blue)"></div> Metric value</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green-l);border:1px solid #16a34a"></div> Green (within threshold)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fef9c3;border:1px solid #ca8a04"></div> Yellow (approaching limit)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--red-l);border:1px solid var(--red)"></div> Red (exceeds threshold)</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid"></div>
+
+    <!-- Threshold Method -->
+    <div class="card">
+      <div class="q-label">Threshold Derivation Method <span class="req">*</span></div>
+      <div class="q-help">How should Yellow and Red thresholds be calculated? Select the method that best fits this metric's context.</div>
+      <div id="thr-method-grid" class="method-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))"></div>
+      <div id="constraint-input-wrap" style="display:none;margin-top:12px">
+        <div class="q-label" style="font-size:13px">External Limit Value <span class="req">*</span></div>
+        <div class="q-help">Enter the regulatory minimum, policy ceiling, or contractual SLA that this metric must not breach.</div>
+        <input type="number" id="constraint-limit" placeholder="e.g. 4.5 or 10" step="any" oninput="onConstraintChange(this.value)" style="width:200px">
+      </div>
+    </div>
+
+    <!-- Thresholds -->
+    <div class="card" id="thr-card">
+      <div class="q-label">Derived Thresholds</div>
+      <div class="q-help" id="thr-help-text">Select a threshold method above to calculate Yellow and Red thresholds.</div>
+      <div class="note info" style="margin-bottom:12px" id="thr-note">📊 Select a threshold derivation method above.</div>
+      <div class="thr-fmt-toggle">
+        <button class="thr-fmt-btn sel" id="fmt-point" onclick="setThrFormat('point')">Point Estimates</button>
+        <button class="thr-fmt-btn" id="fmt-range" onclick="setThrFormat('range')">Ranges</button>
+      </div>
+      <table class="thr-table">
+        <thead><tr><th>Level</th><th>Risk Zone</th><th>Derived Value</th><th id="thr-val-header">Your Threshold</th><th>Actions Required When Breached</th></tr></thead>
+        <tbody id="thr-tbody"></tbody>
+      </table>
+      <div id="thr-dist-wrap" style="margin-top:16px"></div>
+      <div id="thr-explanation"></div>
+    </div>
+
+    <!-- Trend -->
+    <div class="card">
+      <div class="q-label">Trend Analysis</div>
+      <div id="trend-analysis"></div>
+    </div>
+
+    <!-- Velocity -->
+    <div class="card">
+      <div class="q-label">Period-over-Period Velocity</div>
+      <div id="velocity-analysis"></div>
+    </div>
+
+    <!-- Risk Correlation & Health -->
+    <div class="card" id="impact-card">
+      <div class="q-label">Risk Impact Strength</div>
+      <div class="q-help">Rate how strongly this metric impacts each risk category. Select an impact level (1–5) for each category. Combined percentages do not need to equal 100%.</div>
+      <div id="risk-impact-strength"></div>
+    </div>
+
+    <!-- Metric Relationships -->
+    <div class="card" id="rel-card">
+      <div class="q-label">Metric Relationships</div>
+      <div class="q-help">Document correlations with other KRIs and linkages to specific controls.</div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">Correlation with other KRIs?</div>
+        <div class="rel-radio-group" id="corr-radio">
+          <div class="rel-radio" onclick="setRelRadio('corr','Yes',this)">Yes</div>
+          <div class="rel-radio" onclick="setRelRadio('corr','No',this)">No</div>
+          <div class="rel-radio" onclick="setRelRadio('corr','Unknown',this)">Unknown</div>
+        </div>
+        <div id="corr-table-wrap" style="display:none">
+          <table class="rel-table" id="corr-table">
+            <thead><tr><th>Metric Name</th><th style="width:100px">Direction</th><th style="width:110px">Strength</th><th>Explanation</th><th style="width:30px"></th></tr></thead>
+            <tbody id="corr-tbody"></tbody>
+          </table>
+          <button class="add-rel-btn" onclick="addCorrRow()">+ Add Correlation</button>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px">Linked to Specific Controls?</div>
+        <div class="rel-radio-group" id="ctrl-radio">
+          <div class="rel-radio" onclick="setRelRadio('ctrl','Yes',this)">Yes</div>
+          <div class="rel-radio" onclick="setRelRadio('ctrl','No',this)">No</div>
+          <div class="rel-radio" onclick="setRelRadio('ctrl','Unknown',this)">Unknown</div>
+        </div>
+        <div id="ctrl-table-wrap" style="display:none">
+          <table class="rel-table" id="ctrl-table">
+            <thead><tr><th>Control Name</th><th style="width:90px">Control ID</th><th style="width:120px">Relationship</th><th>Explanation</th><th style="width:30px"></th></tr></thead>
+            <tbody id="ctrl-tbody"></tbody>
+          </table>
+          <button class="add-rel-btn" onclick="addCtrlRow()">+ Add Control</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stress Scenarios -->
+    <div class="card" id="stress-card">
+      <div class="q-label">Stress Scenarios</div>
+      <div class="q-help">How would this metric behave under adverse conditions?</div>
+      <div class="stress-grid">
+        <div class="stress-row">
+          <div class="stress-label">Economic Downturn</div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+          <textarea id="stress-econ" placeholder="e.g. Metric expected to increase 30-50% due to rising delinquencies and reduced consumer spending."></textarea></div>
+        </div>
+        <div class="stress-row">
+          <div class="stress-label">Regulatory Change</div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+          <textarea id="stress-reg" placeholder="e.g. New reporting requirements could change the numerator definition, requiring recalibration."></textarea></div>
+        </div>
+        <div class="stress-row">
+          <div class="stress-label">Technology / Service Change or Disruptions</div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+          <textarea id="stress-tech" placeholder="e.g. System migration could cause temporary data gaps; metric may spike due to processing backlogs."></textarea></div>
+        </div>
+        <div class="stress-row">
+          <div class="stress-label">Staff Turnover</div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+          <textarea id="stress-staff" placeholder="e.g. Loss of experienced staff may increase error rates and processing times."></textarea></div>
+        </div>
+        <div class="stress-row">
+          <div class="stress-label">Volume Spikes (3x)</div>
+          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+          <textarea id="stress-volume" placeholder="e.g. A 3x volume increase would likely push the metric past Red threshold within 1-2 periods."></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Methods -->
+    <div class="card" id="val-methods-card">
+      <div class="q-label">Validation Methods <span class="req">*</span></div>
+      <div class="q-help">Which validation methods are or will be used for this metric? How is this metric tested for accuracy?</div>
+      <textarea id="q-validation" placeholder="e.g. Monthly reconciliation against source system reports. Quarterly independent review by 2nd line. Annual back-testing of threshold calibration against actual loss events." oninput="clearErr('err-validation')"></textarea>
+      <div class="ferr" id="err-validation">Validation method is required.</div>
+    </div>
+
+    <!-- Reporting Period -->
+    <div class="card" id="rpt-card">
+      <div class="q-label">Reporting Period <span class="req">*</span></div>
+      <div class="q-help">How often is this metric collected and reported?</div>
+      <div class="rpt-grid" id="rpt-grid">
+        <div class="rel-radio" onclick="setRptPeriod('Weekly',this)">Weekly</div>
+        <div class="rel-radio" onclick="setRptPeriod('Monthly',this)">Monthly</div>
+        <div class="rel-radio" onclick="setRptPeriod('Quarterly',this)">Quarterly</div>
+        <div class="rel-radio" onclick="setRptPeriod('Other',this)">Other</div>
+      </div>
+      <div id="rpt-other-wrap" style="display:none;margin-bottom:10px">
+        <input type="text" id="q-rpt-other" placeholder="e.g. Semi-annually, Annually" oninput="S.reportingPeriodOther=this.value.trim()">
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Justify why this metric uses this collection period <span class="req">*</span></div>
+      <textarea id="q-rpt-justify" placeholder="e.g. Monthly reporting aligns with the loan review cycle and provides sufficient data points for trend detection while balancing data collection burden." oninput="clearErr('err-rpt-justify')"></textarea>
+      <div class="ferr" id="err-rpt-justify">Reporting period justification is required.</div>
+      <div class="ferr" id="err-rpt-period">Please select a reporting period.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">System of Record <span class="req">*</span></div>
+      <div class="q-help">Name the authoritative system or report this data is sourced from.</div>
+      <input type="text" id="q-source" placeholder="e.g. Salesforce CRM — Complaint Management Module" oninput="clearErr('err-source')">
+      <div class="ferr" id="err-source">System of record is required.</div>
+    </div>
+
+    <div class="card">
+      <div class="q-label">Escalation Owner <span class="req">*</span></div>
+      <div class="q-help">The role/title accountable for acting when this metric breaches Yellow or Red.</div>
+      <input type="text" id="q-owner" placeholder="e.g. Head of Operations, Chief Risk Officer" oninput="clearErr('err-owner')">
+      <div class="ferr" id="err-owner">Escalation owner is required.</div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-prev" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-gen" onclick="nextStep(4)">Generate KRI Specification →</button>
+    </div>
+  </div>
+
+  <!-- ══ OUTPUT ══ -->
+  <div id="output-panel">
+    <div class="out-hdr">
+      <h2>KRI Specification — Complete</h2>
+      <button class="btn-dl" onclick="downloadMd()">↓ Download Markdown</button>
+    </div>
+    <div class="out-body" id="out-body"></div>
+    <button class="btn-restart" onclick="location.reload()">← Build Another KRI</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+const S = {
+  currentStep: 1,
+  totalSteps: 4,
+  rows: [],          // [{label, num, denom}]
+  hasDenom: true,
+  method: null,      // selected calculation method id
+  computed: [],      // computed values per row
+  thresholds: {yellow:0, red:0},
+  userThresholds: {yellow:null, red:null},
+  thrMethod: null,        // 'percentile', 'sigma', 'constraint', 'manual'
+  constraintLimit: null,  // external limit value for constraint method
+  thrFormat: 'point',     // 'point' or 'range'
+  thrActions: { green:'', yellow:'', red:'' },
+  thrRanges: { green:{low:null,high:null}, yellow:{low:null,high:null}, red:{low:null,high:null} },
+  impactStrength: {},
+  corrStatus: null,       // 'Yes','No','Unknown'
+  correlations: [],       // [{name,direction,strength,explanation}]
+  ctrlStatus: null,       // 'Yes','No','Unknown'
+  linkedControls: [],     // [{name,id,relationship,explanation}]
+  reportingPeriod: null,
+  reportingPeriodOther: '',
+  stats: {},
+  trend: {},
+  velocity: {}
+};
+
+const RISK_CATS = ['Strategic','Liquidity','Market/Interest Rate','Credit','Operational','Regulatory and Compliance'];
+
+const STEP_LABELS = ['Basics','Data Entry','Calculation','Analysis'];
+
+// ════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════
+function init() {
+  buildStepDots();
+  buildRiskCats();
+  // Add 8 empty rows to start
+  for (let i = 0; i < 8; i++) addRow();
+  updateProgress();
+}
+
+function buildStepDots() {
+  const c = document.getElementById('step-dots');
+  STEP_LABELS.forEach((lbl, i) => {
+    if (i > 0) c.insertAdjacentHTML('beforeend','<span class="ssep">›</span>');
+    c.insertAdjacentHTML('beforeend',
+      `<div class="sdot" id="sdot-${i+1}" onclick="goStepIfValid(${i+1})">
+        <span class="dot">${i+1}</span><span>${lbl}</span>
+      </div>`);
+  });
+}
+
+function buildRiskCats() {
+  const g = document.getElementById('risk-cat-grid');
+  RISK_CATS.forEach(cat => {
+    g.insertAdjacentHTML('beforeend',
+      `<label class="opt" onclick="selR('q-cat','${cat}',this)">
+        <input type="radio" name="q-cat" value="${cat}">
+        <div><div class="opt-lbl">${cat}</div></div>
+      </label>`);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// DATA TABLE
+// ════════════════════════════════════════════════════════════════
+let rowIdx = 0;
+
+function addRow() {
+  const id = rowIdx++;
+  S.rows.push({ id, label:'', num:'', denom:'' });
+  const tb = document.getElementById('data-tbody');
+  const denomVis = S.hasDenom ? '' : 'style="display:none"';
+  tb.insertAdjacentHTML('beforeend',
+    `<tr id="row-${id}">
+      <td><input type="text" id="lbl-${id}" placeholder="e.g. Jan 2024" oninput="setRowVal(${id},'label',this.value)" style="width:120px"></td>
+      <td><input type="number" id="num-${id}" placeholder="0" min="0" step="any" oninput="setRowVal(${id},'num',this.value)" style="width:110px"></td>
+      <td id="denom-cell-${id}" ${denomVis}><input type="number" id="denom-${id}" placeholder="0" min="0" step="any" oninput="setRowVal(${id},'denom',this.value)" style="width:110px"></td>
+      <td class="computed na" id="comp-${id}">—</td>
+      <td><button class="del-btn" onclick="delRow(${id})">✕</button></td>
+    </tr>`);
+}
+
+function delRow(id) {
+  const idx = S.rows.findIndex(r => r.id === id);
+  if (idx !== -1) S.rows.splice(idx, 1);
+  document.getElementById(`row-${id}`)?.remove();
+  recalcPreview();
+  updateDataStatus();
+}
+
+function setRowVal(id, field, val) {
+  const row = S.rows.find(r => r.id === id);
+  if (row) { row[field] = val; recalcPreview(); updateDataStatus(); }
+}
+
+function toggleDenomCol(show) {
+  S.hasDenom = show;
+  document.getElementById('denom-label-row').style.display = show ? 'block' : 'none';
+  document.getElementById('th-denom').style.display = show ? '' : 'none';
+  document.querySelectorAll('[id^="denom-cell-"]').forEach(c => c.style.display = show ? '' : 'none');
+  recalcPreview();
+  updateDataStatus();
+}
+
+function updateTableHeaders() {
+  const nl = document.getElementById('q-num-label').value || 'Numerator';
+  const dl = document.getElementById('q-denom-label').value || 'Denominator';
+  document.getElementById('th-num').textContent = nl;
+  document.getElementById('th-denom').textContent = dl;
+}
+
+function getValidRows() {
+  return S.rows.filter(r => {
+    const hasLabel = r.label.trim() !== '';
+    const hasNum = r.num !== '' && !isNaN(parseFloat(r.num));
+    const hasDenom = !S.hasDenom || (r.denom !== '' && !isNaN(parseFloat(r.denom)) && parseFloat(r.denom) > 0);
+    return hasLabel && hasNum && hasDenom;
+  });
+}
+
+function updateDataStatus() {
+  const valid = getValidRows();
+  const n = valid.length;
+  const countEl = document.getElementById('ds-count');
+  countEl.textContent = n;
+  countEl.className = 'ds-val ' + (n >= 12 ? 'ok' : n >= 6 ? '' : 'bad');
+
+  const covEl = document.getElementById('ds-coverage');
+  covEl.textContent = n >= 12 ? '12+ months (full analysis)' : n >= 6 ? `${n} months (adequate)` : `${n} months (need ${6-n} more)`;
+  covEl.className = 'ds-val ' + (n >= 12 ? 'ok' : n >= 6 ? 'warn' : 'bad');
+
+  if (valid.length > 0) {
+    const nums = valid.map(r => parseFloat(r.num));
+    document.getElementById('ds-range').textContent = `${Math.min(...nums).toLocaleString()} – ${Math.max(...nums).toLocaleString()}`;
+  } else {
+    document.getElementById('ds-range').textContent = '—';
+  }
+
+  // Update computed preview in table
+  recalcPreview();
+}
+
+function recalcPreview() {
+  const validRows = getValidRows();
+  // For now use rate if denom exists, else count
+  S.rows.forEach(row => {
+    const compEl = document.getElementById(`comp-${row.id}`);
+    if (!compEl) return;
+    const hasNum = row.num !== '' && !isNaN(parseFloat(row.num));
+    const hasDenom = row.denom !== '' && !isNaN(parseFloat(row.denom)) && parseFloat(row.denom) > 0;
+    if (!hasNum) { compEl.textContent = '—'; compEl.className = 'computed na'; return; }
+    let val;
+    if (S.hasDenom && hasDenom) {
+      val = (parseFloat(row.num) / parseFloat(row.denom) * 100).toFixed(3) + '%';
+    } else {
+      val = parseFloat(row.num).toLocaleString();
+    }
+    compEl.textContent = val;
+    compEl.className = 'computed';
+  });
+
+  const thComp = document.getElementById('th-computed');
+  if (thComp) thComp.textContent = S.hasDenom ? 'Rate (preview)' : 'Count';
+}
+
+// ════════════════════════════════════════════════════════════════
+// CALCULATION METHODS
+// ════════════════════════════════════════════════════════════════
+function getMethods(validRows, hasDenom) {
+  const nums   = validRows.map(r => parseFloat(r.num));
+  const denoms = hasDenom ? validRows.map(r => parseFloat(r.denom)) : null;
+
+  const methods = [];
+
+  // Method 1: Simple Count
+  methods.push({
+    id: 'count',
+    tag: 'Count',
+    name: 'Simple Count',
+    formula: 'Numerator',
+    desc: 'Raw count of events each period. Best when every event matters equally regardless of volume.',
+    values: nums,
+    unit: 'Count',
+    alwaysAvailable: true
+  });
+
+  // Method 2: Rate (%) — only if denom
+  if (hasDenom && denoms) {
+    const rates = nums.map((n, i) => (n / denoms[i]) * 100);
+    methods.push({
+      id: 'rate_pct',
+      tag: 'Rate',
+      name: 'Rate (%)',
+      formula: 'Numerator ÷ Denominator × 100',
+      desc: 'Percentage rate. Best when volume fluctuates — normalizes counts against the population.',
+      values: rates,
+      unit: '%',
+      alwaysAvailable: false
+    });
+
+    // Method 3: Rate per 1,000
+    const ratePer1k = nums.map((n, i) => (n / denoms[i]) * 1000);
+    methods.push({
+      id: 'rate_per1k',
+      tag: 'Rate',
+      name: 'Rate per 1,000',
+      formula: 'Numerator ÷ Denominator × 1,000',
+      desc: 'Events per 1,000 units of population. Good for low-frequency risks where % would be very small.',
+      values: ratePer1k,
+      unit: 'per 1,000',
+      alwaysAvailable: false
+    });
+  }
+
+  // Method 4: Period-over-period change (%)
+  if (nums.length >= 2) {
+    const changes = [null, ...nums.slice(1).map((n, i) => {
+      const prev = nums[i];
+      return prev !== 0 ? ((n - prev) / Math.abs(prev)) * 100 : null;
+    })];
+    methods.push({
+      id: 'pct_change',
+      tag: 'Change',
+      name: 'Period-over-Period Change (%)',
+      formula: '(This Period − Prior Period) ÷ |Prior Period| × 100',
+      desc: 'Tracks rate of change. Best for detecting acceleration or deceleration in a trend.',
+      values: changes,
+      unit: '% change',
+      alwaysAvailable: true
+    });
+  }
+
+  // Method 5: 3-period moving average
+  if (nums.length >= 3) {
+    const ma = nums.map((_, i) => {
+      if (i < 2) return null;
+      return (nums[i] + nums[i-1] + nums[i-2]) / 3;
+    });
+    methods.push({
+      id: 'ma3',
+      tag: 'Smoothed',
+      name: '3-Period Moving Average',
+      formula: 'Average(This Period, Prior, 2 Periods Ago)',
+      desc: 'Smooths out noise. Best for volatile data where individual period spikes can mislead.',
+      values: ma,
+      unit: 'Moving Avg',
+      alwaysAvailable: true
+    });
+  }
+
+  // Method 6: Cumulative (running total)
+  {
+    let cum = 0;
+    const cumVals = nums.map(n => { cum += n; return cum; });
+    methods.push({
+      id: 'cumulative',
+      tag: 'Cumulative',
+      name: 'Cumulative Total',
+      formula: 'Sum(All Periods to Date)',
+      desc: 'Running total. Useful for year-to-date tracking or when you have an annual cap.',
+      values: cumVals,
+      unit: 'Cumulative',
+      alwaysAvailable: true
+    });
+  }
+
+  return methods;
+}
+
+function buildMethodGrid(validRows) {
+  const methods = getMethods(validRows, S.hasDenom);
+  S._methods = methods;
+  const grid = document.getElementById('method-grid');
+  grid.innerHTML = '';
+  const labels = validRows.map(r => r.label);
+
+  methods.forEach(m => {
+    const vals = m.values.filter(v => v !== null && !isNaN(v));
+    const min = vals.length ? Math.min(...vals) : 0;
+    const max = vals.length ? Math.max(...vals) : 1;
+    const svg = drawMiniChart(labels, m.values, min, max);
+    const isDisabled = !m.alwaysAvailable && !S.hasDenom;
+
+    grid.insertAdjacentHTML('beforeend',
+      `<div class="method-card${isDisabled ? ' disabled' : ''}" id="mc-${m.id}" onclick="selectMethod('${m.id}')">
+        <div class="mc-tag">${m.tag}</div>
+        <div class="mc-name">${m.name}</div>
+        <div class="mc-formula">${m.formula}</div>
+        <div class="mc-desc">${m.desc}</div>
+        <div class="mc-preview">${svg}</div>
+      </div>`);
+  });
+
+  // Pre-select recommended based on signal
+  const signal = getR('q-signal');
+  let rec = 'count';
+  if (S.hasDenom && (signal === 'events' || signal === 'recurrence')) rec = 'rate_pct';
+  else if (signal === 'severity') rec = 'pct_change';
+  else if (signal === 'delay') rec = 'rate_pct';
+  else if (signal === 'concentration' || signal === 'exposure') rec = S.hasDenom ? 'rate_pct' : 'count';
+
+  const preferred = methods.find(m => m.id === rec) ? rec : 'count';
+  selectMethod(preferred);
+}
+
+function selectMethod(id) {
+  S.method = id;
+  document.querySelectorAll('.method-card').forEach(c => {
+    c.classList.toggle('sel', c.id === `mc-${id}`);
+  });
+  const m = S._methods.find(m => m.id === id);
+  if (!m) return;
+
+  // Update preview card
+  const card = document.getElementById('method-preview-card');
+  card.style.display = 'block';
+  document.getElementById('preview-method-name').textContent = m.name;
+
+  const validRows = getValidRows();
+  const labels = validRows.map(r => r.label);
+  const vals = m.values;
+
+  // Big preview chart
+  const maxVal = Math.max(...vals.filter(v => v !== null && !isNaN(v)));
+  const minVal = Math.min(...vals.filter(v => v !== null && !isNaN(v)));
+  document.getElementById('preview-chart-wrap').innerHTML =
+    drawPreviewChart(labels, vals, minVal, maxVal, m.unit);
+
+  // Preview data table
+  let tbl = `<table class="period-tbl"><thead><tr><th>Period</th><th>Numerator</th>`;
+  if (S.hasDenom) tbl += `<th>Denominator</th>`;
+  tbl += `<th>${m.unit}</th></tr></thead><tbody>`;
+  validRows.forEach((r, i) => {
+    const v = vals[i];
+    const disp = (v === null || isNaN(v)) ? '—' : formatVal(v, m.unit);
+    tbl += `<tr><td>${r.label}</td><td>${parseFloat(r.num).toLocaleString()}</td>`;
+    if (S.hasDenom) tbl += `<td>${parseFloat(r.denom).toLocaleString()}</td>`;
+    tbl += `<td><strong>${disp}</strong></td></tr>`;
+  });
+  tbl += '</tbody></table>';
+  document.getElementById('preview-data-table').innerHTML = tbl;
+}
+
+// ════════════════════════════════════════════════════════════════
+// STATISTICS & DERIVATION
+// ════════════════════════════════════════════════════════════════
+function percentile(sortedArr, p) {
+  const idx = (p / 100) * (sortedArr.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if (lo === hi) return sortedArr[lo];
+  return sortedArr[lo] + (sortedArr[hi] - sortedArr[lo]) * (idx - lo);
+}
+
+function computeStats(values) {
+  const v = values.filter(x => x !== null && !isNaN(x));
+  if (!v.length) return {};
+  const sorted = [...v].sort((a, b) => a - b);
+  const n = v.length;
+  const mean = v.reduce((a, b) => a + b, 0) / n;
+  const variance = v.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1);
+  const std = Math.sqrt(variance);
+  const latest = v[v.length - 1];
+  const prior  = v[v.length - 2] ?? null;
+  const vel    = (prior !== null && prior !== 0) ? ((latest - prior) / Math.abs(prior)) * 100 : null;
+
+  // Linear regression slope
+  const xs = v.map((_, i) => i);
+  const xMean = xs.reduce((a, b) => a + b, 0) / n;
+  const yMean = mean;
+  const num   = xs.reduce((a, x, i) => a + (x - xMean) * (v[i] - yMean), 0);
+  const den   = xs.reduce((a, x)    => a + (x - xMean) ** 2, 0);
+  const slope = den !== 0 ? num / den : 0;
+
+  // R-squared (goodness of linear fit)
+  const intercept = yMean - slope * xMean;
+  const ssTot = variance * n;
+  const ssRes = v.reduce((a, x, i) => a + (x - (slope * i + intercept)) ** 2, 0);
+  const rSquared = ssTot > 0 ? Math.max(0, 1 - ssRes / ssTot) : 0;
+
+  // Coefficient of variation
+  const cv = mean !== 0 ? (std / Math.abs(mean)) * 100 : null;
+
+  // Skewness (sample)
+  const skewness = (n >= 3 && std > 0)
+    ? (n / ((n - 1) * (n - 2))) * v.reduce((a, x) => a + ((x - mean) / std) ** 3, 0)
+    : null;
+
+  // Consecutive increases
+  let consec = 0;
+  for (let i = v.length - 1; i >= 1; i--) {
+    if (v[i] > v[i-1]) consec++;
+    else break;
+  }
+
+  return {
+    mean, std, min: sorted[0], max: sorted[sorted.length - 1],
+    p10: percentile(sorted, 10), p25: percentile(sorted, 25), p50: percentile(sorted, 50),
+    p75: percentile(sorted, 75), p90: percentile(sorted, 90),
+    p95: percentile(sorted, 95),
+    latest, prior, vel, slope, consec, n, cv, skewness, rSquared
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+// THRESHOLD DERIVATION METHODS
+// ════════════════════════════════════════════════════════════════
+const THR_METHODS = {
+  percentile: {
+    id: 'percentile', tag: 'PERCENTILE', name: 'Historical Distribution',
+    formula: dir => dir === 'lower' ? 'Yellow = P25, Red = P10' : 'Yellow = P75, Red = P90',
+    useCase: 'Operational metrics without external regulatory or policy limits.',
+    fiExample: 'Complaint volumes, processing backlogs, vendor incident counts, employee turnover rate.',
+    pros: ['No distribution assumptions — works for skewed loss data', 'Purely data-driven starting point', 'Easy to explain: "higher than 75% of our history"'],
+    cons: ['Circular — always flags top 25% as Yellow by design', 'Normalizes around existing baseline, even if unacceptable', 'Threshold drift when re-derived with new data can mask deterioration'],
+    minN: 6
+  },
+  sigma: {
+    id: 'sigma', tag: 'STATISTICAL', name: 'Standard Deviation Bands',
+    formula: dir => dir === 'lower' ? 'Yellow = μ − 1σ, Red = μ − 2σ' : 'Yellow = μ + 1σ, Red = μ + 2σ',
+    useCase: 'Metrics with stable, roughly symmetric operating ranges.',
+    fiExample: 'Daily settlement volumes, staffing ratios, average transaction size, system availability %.',
+    pros: ['Statistically rigorous — flags genuine anomalies', 'Self-calibrating to metric volatility', 'Widely understood by risk committees and regulators'],
+    cons: ['Assumes near-normal distribution — poor for skewed data (loss events, fraud)', 'Sensitive to outliers in small samples (n < 12)', 'Mean may not be an acceptable baseline'],
+    minN: 6
+  },
+  constraint: {
+    id: 'constraint', tag: 'REGULATORY / LIMIT', name: 'External Limit Anchored',
+    formula: dir => dir === 'lower' ? 'Yellow = Limit × 1.25, Red = Limit × 1.10' : 'Yellow = Limit × 0.75, Red = Limit × 0.90',
+    useCase: 'Metrics tied to hard external boundaries — regulatory minimums, concentration limits, contractual SLAs.',
+    fiExample: 'CET1 capital ratio (4.5% min), single-name concentration (25% limit), SLA response time (48hr max).',
+    pros: ['Tied to real consequences — fines, enforcement actions', 'Most defensible in exam and audit', 'Independent of historical data quality'],
+    cons: ['Only works when an external limit exists', '75%/90% split doesn\'t account for metric volatility', 'Metric near its limit is perpetually Yellow'],
+    minN: 0
+  },
+  manual: {
+    id: 'manual', tag: 'EXPERT JUDGMENT', name: 'Manual Entry',
+    formula: () => 'You define both thresholds directly',
+    useCase: 'Thresholds from risk appetite statements, board approvals, or management expertise.',
+    fiExample: 'Board-approved risk appetite limits, CRO loss tolerance thresholds, internal policy limits.',
+    pros: ['Captures institutional knowledge and judgment', 'No statistical assumptions or data requirements', 'Can reflect forward-looking risk appetite, not just history'],
+    cons: ['Requires user to already know appropriate thresholds', 'Subjective — harder to defend without documented rationale', 'No data-driven anchor means thresholds could be arbitrary'],
+    minN: 0
+  }
+};
+
+function deriveThresholds(values, dir, method, constraintLimit) {
+  const valid = values.filter(v => v !== null && !isNaN(v));
+  if (!valid.length) return { yellow: 0, red: 0 };
+  const sorted = [...valid].sort((a, b) => a - b);
+  const n = valid.length;
+  const mean = valid.reduce((a, b) => a + b, 0) / n;
+  const std = Math.sqrt(valid.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1));
+
+  switch (method) {
+    case 'sigma':
+      if (dir === 'lower') {
+        return { yellow: mean - std, red: mean - 2 * std };
+      }
+      return { yellow: mean + std, red: mean + 2 * std };
+
+    case 'constraint':
+      if (constraintLimit === null || constraintLimit === undefined || isNaN(constraintLimit)) return { yellow: 0, red: 0 };
+      if (dir === 'lower') {
+        return { yellow: constraintLimit * 1.25, red: constraintLimit * 1.10 };
+      }
+      return { yellow: constraintLimit * 0.75, red: constraintLimit * 0.90 };
+
+    case 'manual':
+      return { yellow: 0, red: 0 };
+
+    case 'percentile':
+    default:
+      if (dir === 'lower') {
+        return { yellow: percentile(sorted, 25), red: percentile(sorted, 10) };
+      }
+      return { yellow: percentile(sorted, 75), red: percentile(sorted, 90) };
+  }
+}
+
+function buildThrMethodGrid(stats) {
+  const grid = document.getElementById('thr-method-grid');
+  if (!grid) return;
+  const dir = getR('q-dir') || 'higher';
+  const n = stats.n || 0;
+  const skew = stats.skewness;
+  const absSkew = skew !== null ? Math.abs(skew) : 0;
+
+  grid.innerHTML = Object.values(THR_METHODS).map(m => {
+    const disabled = m.minN > 0 && n < m.minN;
+    const selected = S.thrMethod === m.id;
+    const prosHtml = m.pros.map(p => `<div style="font-size:11px;color:#15803d;margin:1px 0">✓ ${p}</div>`).join('');
+    const consHtml = m.cons.map(c => `<div style="font-size:11px;color:#b91c1c;margin:1px 0">⚠ ${c}</div>`).join('');
+    // Skewness nudge: recommend percentile over sigma for skewed data
+    let skewNote = '';
+    if (m.id === 'sigma' && skew !== null && absSkew > 1.0) {
+      skewNote = absSkew > 2.0
+        ? `<div style="font-size:11px;color:#b91c1c;margin-top:4px;font-weight:600;background:#fff1f2;padding:4px 8px;border-radius:4px">⚠ Your data is heavily skewed (${skew.toFixed(2)}). Sigma bands may produce unreliable thresholds. Percentile method recommended.</div>`
+        : `<div style="font-size:11px;color:#854d0e;margin-top:4px;background:#fefce8;padding:4px 8px;border-radius:4px">Note: Your data shows moderate skew (${skew.toFixed(2)}). Sigma bands assume symmetry — consider Percentile as an alternative.</div>`;
+    }
+    if (m.id === 'percentile' && skew !== null && absSkew > 1.0) {
+      skewNote = `<div style="font-size:11px;color:#15803d;margin-top:4px;background:#f0fdf4;padding:4px 8px;border-radius:4px">✓ Recommended for your data — percentiles are distribution-agnostic and handle your data's skew (${skew.toFixed(2)}) well.</div>`;
+    }
+    return `<div class="method-card${selected ? ' sel' : ''}${disabled ? ' disabled' : ''}"
+        id="tmc-${m.id}" onclick="${disabled ? '' : `selectThrMethod('${m.id}')`}"
+        style="padding:14px">
+      <div class="mc-tag">${m.tag}</div>
+      <div class="mc-name" style="font-size:14px">${m.name}</div>
+      <div class="mc-formula" style="font-size:11px;padding:4px 8px;margin:6px 0">${m.formula(dir)}</div>
+      <div style="font-size:11px;color:var(--gray-600);margin-bottom:6px"><strong>Use when:</strong> ${m.useCase}</div>
+      <div style="font-size:11px;color:var(--gray-500);margin-bottom:6px;font-style:italic">FI examples: ${m.fiExample}</div>
+      ${prosHtml}${consHtml}
+      ${disabled ? `<div style="font-size:11px;color:var(--red);margin-top:4px;font-weight:600">Requires ${m.minN}+ periods (have ${n})</div>` : ''}
+      ${skewNote}
+    </div>`;
+  }).join('');
+}
+
+function selectThrMethod(id) {
+  S.thrMethod = id;
+  document.querySelectorAll('#thr-method-grid .method-card').forEach(c => {
+    c.classList.toggle('sel', c.id === `tmc-${id}`);
+  });
+  // Show/hide constraint input
+  document.getElementById('constraint-input-wrap').style.display = id === 'constraint' ? 'block' : 'none';
+  // For manual, show threshold card but don't auto-derive
+  buildAnalysis();
+}
+
+function onConstraintChange(val) {
+  S.constraintLimit = val !== '' ? parseFloat(val) : null;
+  buildAnalysis();
+}
+
+function getRAG(val, thr, dir) {
+  if (dir === 'lower') {
+    if (val >= thr.yellow) return { label: 'Green', cls: 'rag-g', score: 'G' };
+    if (val >= thr.red)    return { label: 'Yellow', cls: 'rag-y', score: 'Y' };
+    return                        { label: 'Red', cls: 'rag-r', score: 'R' };
+  } else {
+    if (val <= thr.yellow) return { label: 'Green', cls: 'rag-g', score: 'G' };
+    if (val <= thr.red)    return { label: 'Yellow', cls: 'rag-y', score: 'Y' };
+    return                        { label: 'Red', cls: 'rag-r', score: 'R' };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// ANALYSIS PANEL
+// ════════════════════════════════════════════════════════════════
+function buildAnalysis() {
+  const validRows = getValidRows();
+  const m = S._methods.find(m => m.id === S.method);
+  if (!m) return;
+
+  const values = m.values;
+  const labels = validRows.map(r => r.label);
+  const dir = getR('q-dir') || 'higher';
+  const stats = computeStats(values);
+  S.stats = stats;
+
+  // Build threshold method selector
+  buildThrMethodGrid(stats);
+
+  // Auto-select recommended method if none selected
+  if (!S.thrMethod) {
+    if (S.constraintLimit) S.thrMethod = 'constraint';
+    else if (stats.n >= 6) S.thrMethod = 'percentile';
+    else S.thrMethod = 'manual';
+    // Highlight the selected card
+    document.querySelectorAll('#thr-method-grid .method-card').forEach(c => {
+      c.classList.toggle('sel', c.id === `tmc-${S.thrMethod}`);
+    });
+  }
+
+  // Derive thresholds using selected method
+  const method = S.thrMethod || 'percentile';
+  const derivedThr = deriveThresholds(values, dir, method, S.constraintLimit);
+  S.thresholds = derivedThr;
+  S.derivedThr = derivedThr;
+
+  // Preserve user edits if they exist (except for manual — always use inputs)
+  // Key fix: if the input value matches its data-calc (the old derived value),
+  // the user hasn't manually edited — use the new derived value instead.
+  const isRange = S.thrFormat === 'range';
+  const getT = (key, fallback) => {
+    if (isRange) return fallback; // In range mode, point inputs don't exist
+    if (method === 'manual') {
+      const el = document.getElementById(`thr-${key}`);
+      const v = el ? parseFloat(el.value) : NaN;
+      return isNaN(v) ? 0 : v;
+    }
+    const el = document.getElementById(`thr-${key}`);
+    if (!el) return fallback;
+    const v = parseFloat(el.value);
+    if (isNaN(v)) return fallback;
+    // If value matches old calculated value, user hasn't edited — use new derived
+    const oldCalc = parseFloat(el.getAttribute('data-calc'));
+    if (!isNaN(oldCalc) && Math.abs(v - oldCalc) < 0.00001) return fallback;
+    return v; // User has actually edited this value — preserve it
+  };
+  const thr = {
+    yellow: getT('yellow', derivedThr.yellow),
+    red: getT('red', derivedThr.red)
+  };
+
+  // Chart
+  document.getElementById('chart-title').textContent = `${document.getElementById('q-name').value || 'Metric'} — History with Threshold Bands`;
+  drawMainChart(labels, values, thr, dir, m.unit);
+
+  // Stats
+  const statArr = [
+    { label: 'Latest Value', val: stats.latest !== undefined ? formatVal(stats.latest, m.unit) : '—', sub: labels[labels.length-1] || '' },
+    { label: 'Current RAG', val: stats.latest !== undefined ? getRAG(stats.latest, thr, dir).label : '—', sub: 'Based on threshold bands' },
+    { label: 'Historical Mean', val: stats.mean !== undefined ? formatVal(stats.mean, m.unit) : '—', sub: `Median: ${stats.p50 !== undefined ? formatVal(stats.p50, m.unit) : '—'}` },
+    { label: 'Std Dev / Volatility', val: stats.std !== undefined ? formatVal(stats.std, m.unit) : '—', sub: `CV: ${stats.cv !== null ? stats.cv.toFixed(1) + '%' : '—'}${stats.cv !== null && stats.cv > 50 ? ' (high volatility)' : stats.cv !== null && stats.cv < 20 ? ' (low volatility)' : ''}` },
+    { label: 'Trend Direction', val: (() => { const tStd = stats.std || 1; return stats.slope > tStd * 0.05 ? '↑ Rising' : stats.slope < -tStd * 0.05 ? '↓ Falling' : '→ Stable'; })(), sub: `Slope per period: ${stats.slope !== undefined ? formatVal(stats.slope, m.unit) : '—'}` },
+    { label: 'Consecutive Increases', val: stats.consec ?? '—', sub: stats.consec >= 3 ? '⚠ Yellow trend trigger' : 'No trend trigger' },
+    { label: 'Period Velocity', val: stats.vel !== null && stats.vel !== undefined ? (stats.vel > 0 ? '+' : '') + stats.vel.toFixed(1) + '%' : '—', sub: 'vs prior period' }
+  ];
+  const sg = document.getElementById('stats-grid');
+  sg.innerHTML = statArr.map(s => {
+    const isUp = s.val && s.val.toString().startsWith('↑');
+    const isDown = s.val && s.val.toString().startsWith('↓');
+    const cls = isUp ? ' up' : isDown ? ' down' : '';
+    return `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-val${cls}">${s.val}</div><div class="stat-sub">${s.sub}</div></div>`;
+  }).join('');
+
+  // Threshold note + help text — reflect selected method
+  const noteEl = document.getElementById('thr-note');
+  const helpEl = document.getElementById('thr-help-text');
+  const mcfg = THR_METHODS[method] || THR_METHODS.percentile;
+  if (noteEl) {
+    if (method === 'manual') {
+      noteEl.innerHTML = `📊 <strong>Manual entry</strong> — enter your Yellow and Red threshold values directly.`;
+    } else if (method === 'constraint') {
+      const lbl = S.constraintLimit !== null ? formatVal(S.constraintLimit, '') : '—';
+      noteEl.innerHTML = `📊 <strong>Constraint-anchored</strong> — External limit: <strong>${lbl}</strong>. ${mcfg.formula(dir)}.`;
+    } else {
+      noteEl.innerHTML = `📊 Based on <strong>${stats.n}</strong> periods of data. <strong>${mcfg.name}</strong>: ${mcfg.formula(dir)}.`;
+    }
+  }
+  if (helpEl) {
+    helpEl.innerHTML = method === 'manual'
+      ? 'Enter your threshold values directly based on risk appetite statements, board approvals, or expert judgment.'
+      : `Calculated using <strong>${mcfg.name}</strong>. Adjust the values if needed.`;
+  }
+
+  // Threshold table (Green / Yellow / Red) with actions and point/range support
+  const tb = document.getElementById('thr-tbody');
+
+  // Preserve action text from existing textareas
+  ['green','yellow','red'].forEach(k => {
+    const el = document.getElementById(`thr-action-${k}`);
+    if (el) S.thrActions[k] = el.value;
+  });
+
+  // Auto-calculate ranges from derived thresholds + data boundaries
+  // Only overwrite if user hasn't manually edited them
+  const autoRanges = (() => {
+    const yVal = thr.yellow;
+    const rVal = thr.red;
+    const dMin = stats.min;
+    const dMax = stats.max;
+    if (dir === 'higher') {
+      // Higher is worse: Green = min→Yellow, Yellow = Yellow→Red, Red = Red→max
+      return {
+        green: { low: dMin, high: yVal },
+        yellow: { low: yVal, high: rVal },
+        red:    { low: rVal, high: dMax }
+      };
+    } else {
+      // Lower is worse: Green = Yellow→max, Yellow = Red→Yellow, Red = min→Red
+      return {
+        green: { low: yVal, high: dMax },
+        yellow: { low: rVal, high: yVal },
+        red:    { low: dMin, high: rVal }
+      };
+    }
+  })();
+
+  // Populate S.thrRanges with auto-calculated values if user hasn't overridden
+  ['green','yellow','red'].forEach(k => {
+    const lowEl = document.getElementById(`thr-${k}-low`);
+    const highEl = document.getElementById(`thr-${k}-high`);
+    // If the inputs don't exist yet (first render) or user hasn't edited, use auto
+    if (!lowEl && !highEl) {
+      S.thrRanges[k] = { low: autoRanges[k].low, high: autoRanges[k].high };
+    } else {
+      // Preserve user edits from existing inputs
+      if (lowEl) S.thrRanges[k].low = lowEl.value !== '' ? parseFloat(lowEl.value) : autoRanges[k].low;
+      if (highEl) S.thrRanges[k].high = highEl.value !== '' ? parseFloat(highEl.value) : autoRanges[k].high;
+    }
+  });
+
+  // Update header for range mode
+  document.getElementById('thr-val-header').textContent = isRange ? 'Your Threshold (Range)' : 'Your Threshold';
+
+  const ALLKEYS = ['green', 'yellow', 'red'];
+  const ALLZONES = ['Green', 'Yellow', 'Red'];
+  const ALLBADGES = [
+    '<span class="thr-badge green-b">Green</span>',
+    '<span class="thr-badge yellow-b">Yellow</span>',
+    '<span class="thr-badge red-b">Red</span>'
+  ];
+  const rowBgs = ['background:#f0fdf4', 'background:#fefce8', 'background:#fff1f2'];
+  const derivedRangeLabel = (k) => `${formatVal(autoRanges[k].low, m.unit)} – ${formatVal(autoRanges[k].high, m.unit)}`;
+
+  tb.innerHTML = ALLKEYS.map((key, i) => {
+    const actionVal = S.thrActions[key] || '';
+
+    if (key === 'green') {
+      // Green row — derived range shown, editable in range mode
+      const greenDesc = dir === 'higher'
+        ? `≤ ${formatVal(thr.yellow, m.unit)}`
+        : `≥ ${formatVal(thr.yellow, m.unit)}`;
+      const rangeCell = isRange
+        ? `<div class="range-inputs">
+            <input type="number" id="thr-green-low" value="${S.thrRanges.green.low !== null ? S.thrRanges.green.low : ''}" step="any" placeholder="Low" oninput="onRangeInput('green','low',this.value)" style="width:80px">
+            <span class="range-sep">to</span>
+            <input type="number" id="thr-green-high" value="${S.thrRanges.green.high !== null ? S.thrRanges.green.high : ''}" step="any" placeholder="High" oninput="onRangeInput('green','high',this.value)" style="width:80px">
+          </div>`
+        : `<span style="font-size:12px;color:var(--gray-500)">${greenDesc}</span>`;
+      const derivedCell = isRange
+        ? `<span style="font-weight:600">${derivedRangeLabel('green')}</span>
+           <span style="font-size:10px;color:var(--gray-400);margin-left:4px">calculated</span>`
+        : `<span style="color:var(--gray-500)">—</span>`;
+      return `<tr style="${rowBgs[0]}">
+        <td>${ALLBADGES[0]}</td>
+        <td style="font-size:12px;color:var(--gray-600)">Normal operating range</td>
+        <td style="font-size:12px">${derivedCell}</td>
+        <td>${rangeCell}</td>
+        <td><textarea id="thr-action-green" placeholder="e.g. Standard monitoring — include in periodic report.">${actionVal}</textarea></td>
+      </tr>`;
+    }
+
+    // Yellow / Red rows
+    const calcVal = derivedThr[key];
+    const curVal = thr[key];
+    const isOverride = Math.abs(curVal - calcVal) > 0.00001;
+    const statusTag = isOverride
+      ? '<span class="override-tag">Edited</span>'
+      : '<span class="calc-tag">Calculated</span>';
+
+    const thrCell = isRange
+      ? `<div class="range-inputs">
+          <input type="number" id="thr-${key}-low" value="${S.thrRanges[key].low !== null ? S.thrRanges[key].low : ''}" step="any" placeholder="Low" oninput="onRangeInput('${key}','low',this.value)" style="width:80px">
+          <span class="range-sep">to</span>
+          <input type="number" id="thr-${key}-high" value="${S.thrRanges[key].high !== null ? S.thrRanges[key].high : ''}" step="any" placeholder="High" oninput="onRangeInput('${key}','high',this.value)" style="width:80px">
+        </div>`
+      : `<input type="number" id="thr-${key}" value="${curVal.toFixed(4)}" step="any"
+          oninput="buildAnalysis()" style="width:110px"
+          data-calc="${calcVal.toFixed(4)}">
+        ${statusTag}`;
+
+    const derivedCell = isRange
+      ? `<span style="font-weight:600">${derivedRangeLabel(key)}</span>
+         <span style="font-size:10px;color:var(--gray-400);margin-left:4px">calculated</span>`
+      : `<span style="font-weight:600">${formatVal(calcVal, m.unit)}</span>
+         <span style="font-size:10px;color:var(--gray-400);margin-left:4px">calculated</span>`;
+
+    const placeholder = key === 'yellow'
+      ? 'e.g. Enhanced monitoring — root cause analysis; prepare contingency plan within 5 business days.'
+      : 'e.g. Immediate escalation to CRO within 24 hours — implement mitigation plan and notify Board Risk Committee.';
+
+    return `<tr style="${rowBgs[i]}">
+      <td>${ALLBADGES[i]}</td>
+      <td style="font-size:12px;color:var(--gray-600)">${ALLZONES[i]} threshold</td>
+      <td style="font-size:12px">${derivedCell}</td>
+      <td>${thrCell}</td>
+      <td><textarea id="thr-action-${key}" placeholder="${placeholder}">${actionVal}</textarea></td>
+    </tr>`;
+  }).join('') +
+  `<tr style="background:var(--gray-50)">
+    <td colspan="5" style="font-size:12px;padding:10px;color:var(--gray-600)">
+      <strong>Green</strong> ≤ Yellow threshold &nbsp;|&nbsp;
+      <strong>Yellow</strong> between thresholds &nbsp;|&nbsp;
+      <strong>Red</strong> > Red threshold &nbsp;&nbsp;
+      <button class="reset-btn" onclick="resetThresholds()">↺ Reset to calculated</button>
+    </td>
+  </tr>`;
+
+  // Distribution visual (Yellow + Red markers)
+  const range = stats.max - stats.min || 1;
+  const pToPos = v => ((v - stats.min) / range * 100).toFixed(1) + '%';
+  document.getElementById('thr-dist-wrap').innerHTML = `
+    <div style="font-size:12px;color:var(--gray-600);margin-bottom:4px">Data distribution — where Yellow and Red thresholds fall in your historical range:</div>
+    <div style="position:relative;padding-top:22px;margin-bottom:8px">
+      <div class="dist-bar" style="--pY:${pToPos(thr.yellow)};--pR:${pToPos(thr.red)}">
+        <div class="dist-tick" style="left:${pToPos(thr.yellow)}">Yellow=${formatVal(thr.yellow,m.unit)}</div>
+        <div class="dist-tick" style="left:${pToPos(thr.red)}">Red=${formatVal(thr.red,m.unit)}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray-400);margin-top:4px">
+        <span>${formatVal(stats.min, m.unit)}</span><span>${formatVal(stats.max, m.unit)}</span>
+      </div>
+    </div>`;
+
+  // Render explanation panel
+  renderThresholdExplanation(thr, derivedThr, values, m, dir, stats, method, isRange, autoRanges);
+
+  // Trend analysis
+  buildTrendAnalysis(stats, m.unit, dir, thr, values, labels);
+
+  // Velocity analysis
+  buildVelocityAnalysis(stats, m.unit, values, labels, dir, thr);
+
+  // Risk Impact Strength
+  buildRiskImpactStrength();
+}
+
+function resetThresholds() {
+  // Clear user threshold inputs so buildAnalysis uses fresh derived values
+  const yEl = document.getElementById('thr-yellow');
+  const rEl = document.getElementById('thr-red');
+  if (yEl) yEl.value = '';
+  if (rEl) rEl.value = '';
+  buildAnalysis();
+}
+
+function renderThresholdExplanation(thr, derivedThr, values, m, dir, stats, method, isRange, autoRanges) {
+  const validVals = values.filter(v => v !== null && !isNaN(v));
+  const n = validVals.length;
+  const mcfg = THR_METHODS[method] || THR_METHODS.percentile;
+  const fv = (v) => formatVal(v, m.unit);
+
+  // Count periods in each band
+  let greenCt = 0, yellowCt = 0, redCt = 0;
+  validVals.forEach(v => {
+    const rag = getRAG(v, thr, dir);
+    if (rag.label === 'Green') greenCt++;
+    else if (rag.label === 'Yellow') yellowCt++;
+    else redCt++;
+  });
+  const gPct = n ? Math.round(greenCt / n * 100) : 0;
+  const yPct = n ? Math.round(yellowCt / n * 100) : 0;
+  const rPct = n ? Math.round(redCt / n * 100) : 0;
+
+  // Check overrides (not applicable for manual)
+  const isManual = method === 'manual';
+  const overrides = isManual ? [] : ['yellow', 'red'].filter(k => Math.abs(thr[k] - derivedThr[k]) > 0.00001);
+  const overrideMsg = overrides.length
+    ? `<div class="note warn" style="margin-top:8px">⚠ You have manually adjusted <strong>${overrides.length}</strong> threshold(s): ${overrides.join(', ')}. The band simulation uses your adjusted values. Click <strong>↺ Reset to calculated</strong> to restore.</div>`
+    : '';
+
+  const yellowOverride = !isManual && Math.abs(thr.yellow - derivedThr.yellow) > 0.00001
+    ? `<br><span style="color:#b45309;font-size:11px">⚠ Overridden to ${fv(thr.yellow)} (calculated: ${fv(derivedThr.yellow)})</span>` : '';
+  const redOverride = !isManual && Math.abs(thr.red - derivedThr.red) > 0.00001
+    ? `<br><span style="color:#b45309;font-size:11px">⚠ Overridden to ${fv(thr.red)} (calculated: ${fv(derivedThr.red)})</span>` : '';
+
+  // Format range display helper
+  const rng = (k) => autoRanges ? `${fv(autoRanges[k].low)} – ${fv(autoRanges[k].high)}` : '—';
+
+  // Method-specific rationale — builds both point and range rationales
+  let methodologyHtml = '';
+  let greenRationale = '', yellowRationale = '', redRationale = '';
+  let greenBasis = '', yellowBasis = '', redBasis = '';
+  let basisCol = 'Basis';
+
+  if (method === 'percentile') {
+    const yP = dir === 'lower' ? '25th' : '75th';
+    const rP = dir === 'lower' ? '10th' : '90th';
+    basisCol = 'Percentile';
+    methodologyHtml = `
+      <strong>Approach:</strong> Percentile-based calibration from <strong>${n} periods</strong> of actual metric data.<br>
+      <strong>Model:</strong> Green / Yellow / Red — two thresholds dividing your data into three risk zones.${isRange ? ' Displayed as <strong>explicit ranges</strong> showing exact zone boundaries.' : ''}<br><br>
+      ${dir === 'lower'
+        ? 'Since <strong>lower is worse</strong>, percentiles are inverted: Yellow at the 25th percentile, Red at the 10th.'
+        : 'Yellow is set at the 75th percentile and Red at the 90th percentile of your historical data.'}
+      <br><br><strong>Financial institution context:</strong> Best for operational metrics without external regulatory limits — complaint rates, processing backlogs, vendor incidents. Tells you what\'s <em>unusual for you</em>, not what\'s <em>acceptable</em>.`;
+    greenBasis = dir === 'lower' ? `Above ${yP} pct` : `Below ${yP} pct`;
+    yellowBasis = `${yP} pct`;
+    redBasis = `${rP} pct`;
+    greenRationale = isRange
+      ? `Range ${rng('green')}. Values within this zone fall ${dir === 'higher' ? 'below' : 'above'} the ${yP} percentile of your ${n}-period history — the <strong>most common operating values</strong>. ${greenCt} of ${n} historical periods (${gPct}%) fell in this range. <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.green.low)}) is your historical minimum; the high end (${fv(autoRanges.green.high)}) is the ${yP} percentile — the point where ${dir === 'higher' ? '75%' : '25%'} of your data falls at or below.`
+      : `Values ${dir === 'higher' ? 'at or below' : 'at or above'} the Yellow threshold (${fv(thr.yellow)}). ${greenCt} of ${n} periods (${gPct}%) fell in this zone. Normal operating range — standard monitoring only.`;
+    yellowRationale = isRange
+      ? `Range ${rng('yellow')}. Values in this zone are between the ${yP} and ${rP} percentiles — <strong>elevated but not extreme</strong>. ${yellowCt} of ${n} historical periods (${yPct}%) fell here. <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.yellow.low)}) is the ${yP} percentile — where values become historically uncommon. The high end (${fv(autoRanges.yellow.high)}) is the ${rP} percentile — beyond which only the most extreme ${dir === 'higher' ? '10%' : '10%'} of values exist. Enhanced monitoring and root-cause analysis warranted.${yellowOverride}`
+      : `${yP} percentile of your ${n}-period history. Values above this are in the upper range and warrant enhanced monitoring and root-cause analysis.${yellowOverride}`;
+    redRationale = isRange
+      ? `Range ${rng('red')}. Values in this zone exceed the ${rP} percentile — <strong>statistically rare in your history</strong>. ${redCt} of ${n} historical periods (${rPct}%) reached this level. <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.red.low)}) is the ${rP} percentile — only the most extreme 10% of your data exceeded this. The high end (${fv(autoRanges.red.high)}) is your historical maximum. Immediate escalation and management action required.${redOverride}`
+      : `${rP} percentile — only the most extreme 10% of historical values exceed this. Immediate escalation and management action required.${redOverride}`;
+  } else if (method === 'sigma') {
+    basisCol = 'Statistical basis';
+    const ySign = dir === 'lower' ? '−' : '+';
+    const rSign = dir === 'lower' ? '−' : '+';
+    methodologyHtml = `
+      <strong>Approach:</strong> Standard deviation bands from <strong>${n} periods</strong> of actual data.<br>
+      <strong>Model:</strong> Yellow at 1 standard deviation from the mean, Red at 2 standard deviations.${isRange ? ' Displayed as <strong>explicit ranges</strong> showing exact zone boundaries.' : ''}<br>
+      <strong>Mean:</strong> ${fv(stats.mean)} &nbsp;|&nbsp; <strong>Std Dev:</strong> ${fv(stats.std)}<br><br>
+      ${dir === 'lower'
+        ? 'Since <strong>lower is worse</strong>, bands extend below the mean: Yellow = μ − 1σ, Red = μ − 2σ.'
+        : 'Bands extend above the mean: Yellow = μ + 1σ, Red = μ + 2σ.'}
+      <br><br><strong>Financial institution context:</strong> Best for metrics with stable, symmetric operating ranges — settlement volumes, staffing ratios, system availability. Flags statistical outliers relative to your normal operating pattern.`;
+    greenBasis = `Within ±1σ`;
+    yellowBasis = `μ ${ySign} 1σ`;
+    redBasis = `μ ${rSign} 2σ`;
+    greenRationale = isRange
+      ? `Range ${rng('green')}. Values within one standard deviation of the mean (${fv(stats.mean)}). <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.green.low)}) is your historical minimum. The high end (${fv(autoRanges.green.high)} = μ ${ySign} 1σ) marks where ~84% of normally distributed data falls — values beyond are statistically uncommon. ${greenCt} of ${n} periods (${gPct}%) fell in this zone.`
+      : `Values within one standard deviation of the mean (${fv(stats.mean)}). ${greenCt} of ${n} periods (${gPct}%) fell in this zone. Normal operating range — standard monitoring only.`;
+    yellowRationale = isRange
+      ? `Range ${rng('yellow')}. Values between 1σ and 2σ from the mean — <strong>statistically uncommon</strong> (occurs ~13.5% of the time in a normal distribution). <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.yellow.low)} = μ ${ySign} 1σ) is where values leave the typical range. The high end (${fv(autoRanges.yellow.high)} = μ ${rSign} 2σ) is where only ~2.5% of values exist beyond. ${yellowCt} of ${n} periods (${yPct}%) fell here. Enhanced monitoring warranted.${yellowOverride}`
+      : `Mean ${ySign} 1 standard deviation. About 16% of values in a normal distribution exceed this. Indicates the metric is outside its typical operating range.${yellowOverride}`;
+    redRationale = isRange
+      ? `Range ${rng('red')}. Values beyond 2 standard deviations — <strong>statistically significant outliers</strong> (occurs ~2.5% of the time). <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.red.low)} = μ ${rSign} 2σ) marks where values become extreme. The high end (${fv(autoRanges.red.high)}) is your historical maximum. ${redCt} of ${n} periods (${rPct}%) reached this zone. Immediate attention required.${redOverride}`
+      : `Mean ${rSign} 2 standard deviations. About 2.5% of values in a normal distribution exceed this. A statistically significant deviation requiring immediate attention.${redOverride}`;
+  } else if (method === 'constraint') {
+    basisCol = 'Limit basis';
+    const limitVal = S.constraintLimit !== null ? fv(S.constraintLimit) : '—';
+    methodologyHtml = `
+      <strong>Approach:</strong> Anchored to external limit of <strong>${limitVal}</strong>.<br>
+      <strong>Model:</strong> Yellow and Red thresholds are early-warning percentages of the external limit.${isRange ? ' Displayed as <strong>explicit ranges</strong> showing exact zone boundaries.' : ''}<br><br>
+      ${dir === 'lower'
+        ? `Since <strong>lower is worse</strong> (floor limit), Yellow = limit × 1.25 (25% buffer), Red = limit × 1.10 (10% buffer). As the metric drops toward the floor, you get progressively earlier warning.`
+        : `Since <strong>higher is worse</strong> (ceiling limit), Yellow = 75% of limit (25% buffer to breach), Red = 90% of limit (10% buffer to breach). As the metric rises toward the ceiling, you get progressively louder warnings.`}
+      <br><br><strong>Financial institution context:</strong> The strongest method when a hard boundary exists — regulatory capital minimums, concentration limits, Basel thresholds, contractual SLAs. Directly tied to real consequences (fines, enforcement, contract breaches). Most defensible in regulatory exams and internal audit.`;
+    greenBasis = dir === 'lower' ? 'Above 125% of limit' : 'Below 75% of limit';
+    yellowBasis = dir === 'lower' ? '125% of limit' : '75% of limit';
+    redBasis = dir === 'lower' ? '110% of limit' : '90% of limit';
+    greenRationale = isRange
+      ? `Range ${rng('green')}. Values with a comfortable buffer from the external limit (${limitVal}). <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.green.low)}) is your historical minimum. The high end (${fv(autoRanges.green.high)}) is the ${dir === 'lower' ? '125%' : '75%'} mark — you still have ${dir === 'lower' ? '25%' : '25%'} buffer remaining before the limit. ${greenCt} of ${n} periods (${gPct}%) fell in this zone.`
+      : `Values with a comfortable buffer from the external limit (${limitVal}). ${greenCt} of ${n} periods (${gPct}%) fell in this zone. Normal operating range — standard monitoring only.`;
+    yellowRationale = isRange
+      ? `Range ${rng('yellow')}. The buffer zone where the metric is <strong>approaching the external limit</strong>. <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.yellow.low)}) = ${dir === 'lower' ? '125%' : '75%'} of limit — you have consumed 75% of your available buffer. The high end (${fv(autoRanges.yellow.high)}) = ${dir === 'lower' ? '110%' : '90%'} of limit — only 10% buffer remains. ${yellowCt} of ${n} periods (${yPct}%) fell here. Enhanced monitoring warranted.${yellowOverride}`
+      : `${dir === 'lower' ? '125%' : '75%'} of the external limit (${limitVal}). You have consumed 75% of your buffer — enhanced monitoring and root-cause analysis warranted.${yellowOverride}`;
+    redRationale = isRange
+      ? `Range ${rng('red')}. The <strong>danger zone</strong> — the metric is within 10% of or beyond the external limit (${limitVal}). <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.red.low)}) = ${dir === 'lower' ? '110%' : '90%'} of limit — only 10% buffer remains before regulatory/policy breach. The high end (${fv(autoRanges.red.high)}) is your historical maximum. ${redCt} of ${n} periods (${rPct}%) reached this zone. Immediate escalation required.${redOverride}`
+      : `${dir === 'lower' ? '110%' : '90%'} of the external limit (${limitVal}). Only 10% buffer remains — immediate escalation required before breach.${redOverride}`;
+  } else {
+    // manual
+    basisCol = 'Basis';
+    methodologyHtml = `
+      <strong>Approach:</strong> Expert judgment — thresholds entered directly by the metric owner.<br>
+      <strong>Model:</strong> Green / Yellow / Red — two user-defined thresholds.${isRange ? ' Displayed as <strong>explicit ranges</strong>.' : ''}<br><br>
+      <strong>Financial institution context:</strong> Use this when thresholds come from board-approved risk appetite statements, CRO directives, or institutional expertise. Appropriate when no statistical or regulatory basis is available, or when organizational judgment should override data-derived values. Document the rationale for auditability.`;
+    greenBasis = 'User-defined';
+    yellowBasis = 'User-defined';
+    redBasis = 'User-defined';
+    greenRationale = isRange
+      ? `Range ${rng('green')}. User-defined zone based on organizational risk appetite or expert judgment. <strong>Why these boundaries:</strong> The low end (${fv(autoRanges.green.low)}) is the historical minimum. The high end (${fv(autoRanges.green.high)}) is the user-defined Yellow threshold. ${greenCt} of ${n} periods (${gPct}%) fell here. Document your rationale for auditability.`
+      : `Values ${dir === 'higher' ? 'at or below' : 'at or above'} the Yellow threshold (${fv(thr.yellow)}). ${greenCt} of ${n} periods (${gPct}%) fell in this zone. Normal operating range — standard monitoring only.`;
+    yellowRationale = isRange
+      ? `Range ${rng('yellow')}. User-defined zone based on organizational risk appetite. <strong>Why these boundaries:</strong> From the Yellow threshold (${fv(autoRanges.yellow.low)}) to the Red threshold (${fv(autoRanges.yellow.high)}). ${yellowCt} of ${n} periods (${yPct}%) fell here.`
+      : `User-defined threshold based on organizational risk appetite or expert judgment.`;
+    redRationale = isRange
+      ? `Range ${rng('red')}. User-defined zone for highest-severity values. <strong>Why these boundaries:</strong> From the Red threshold (${fv(autoRanges.red.low)}) to the historical maximum (${fv(autoRanges.red.high)}). ${redCt} of ${n} periods (${rPct}%) reached this level.`
+      : `User-defined threshold based on organizational risk appetite or expert judgment.`;
+  }
+
+  // Value column: show range or point depending on mode
+  const greenVal = isRange ? rng('green') : `≤ ${fv(thr.yellow)}`;
+  const yellowVal = isRange ? rng('yellow') : fv(thr.yellow);
+  const redVal = isRange ? rng('red') : fv(thr.red);
+  const valColHeader = isRange ? 'Range' : 'Value';
+
+  const html = `
+  <div class="exp-card">
+    <div class="exp-title">📊 How These Thresholds Were Decided</div>
+
+    <div class="exp-section">
+      <div class="exp-sub">Methodology — ${mcfg.name}</div>
+      <div class="exp-rationale">${methodologyHtml}</div>
+    </div>
+
+    <div class="exp-section">
+      <div class="exp-sub">Threshold Breakdown — Why ${isRange ? 'Each Range' : 'Each Value'}</div>
+      <table class="exp-tbl">
+        <thead><tr><th>Threshold</th><th>${basisCol}</th><th>${valColHeader}</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr class="green-row">
+            <td><strong>Green</strong> (within normal)</td>
+            <td>${greenBasis}</td>
+            <td style="font-weight:600">${greenVal}</td>
+            <td>${greenRationale}</td>
+          </tr>
+          <tr class="yellow-row">
+            <td><strong>Yellow</strong> (approaching limit)</td>
+            <td>${yellowBasis}</td>
+            <td style="font-weight:600">${yellowVal}</td>
+            <td>${yellowRationale}</td>
+          </tr>
+          <tr class="red-row">
+            <td><strong>Red</strong> (exceeds threshold)</td>
+            <td>${redBasis}</td>
+            <td style="font-weight:600">${redVal}</td>
+            <td>${redRationale}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="font-size:11px;color:var(--gray-500)">
+        ${dir === 'lower' ? '⚠ Direction is <strong>Lower is worse</strong> — thresholds are inverted.' : ''}
+        ${method !== 'manual' ? `Computed from your ${n}-period history (min: ${fv(stats.min)}, max: ${fv(stats.max)}, median: ${fv(stats.p50 || 0)}).` : 'Values entered manually — document your rationale for audit trail.'}
+      </div>
+    </div>
+
+    <div class="exp-section">
+      <div class="exp-sub">Historical Band Simulation — based on your ${n} periods</div>
+      <div style="font-size:12px;color:var(--gray-600);margin-bottom:6px">
+        If these thresholds had been in place across your full history, periods would have been distributed as follows:
+      </div>
+      <div class="band-bar">
+        <div class="band-seg" style="width:${gPct}%;background:#16a34a;min-width:${gPct > 0 ? '30px' : '0'}">${gPct > 5 ? 'Green ' + gPct + '%' : ''}</div>
+        <div class="band-seg" style="width:${yPct}%;background:#ca8a04;min-width:${yPct > 0 ? '30px' : '0'}">${yPct > 5 ? 'Yellow ' + yPct + '%' : ''}</div>
+        <div class="band-seg" style="width:${rPct}%;background:#dc2626;min-width:${rPct > 0 ? '30px' : '0'}">${rPct > 5 ? 'Red ' + rPct + '%' : ''}</div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;margin-top:4px;flex-wrap:wrap">
+        <span>🟢 Green: <strong>${greenCt}/${n}</strong> periods (${gPct}%)</span>
+        <span>🟡 Yellow: <strong>${yellowCt}/${n}</strong> periods (${yPct}%)</span>
+        <span>🔴 Red: <strong>${redCt}/${n}</strong> periods (${rPct}%)</span>
+      </div>
+      ${overrideMsg}
+    </div>
+
+    <div class="exp-section" style="margin-bottom:0">
+      <div class="exp-sub">What Happens Next</div>
+      <div style="font-size:13px;color:var(--gray-600);line-height:1.6">
+        These thresholds are your <strong>starting calibration</strong>. Review them at least annually or after:
+        a significant incident, a change in business volume, a regulatory change, or a data source change.
+        ${method !== 'manual' ? 'Edit any threshold value in the table above to fine-tune, and click <strong>↺ Reset to calculated</strong> to restore defaults.' : 'Update values as risk appetite evolves.'}
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('thr-explanation').innerHTML = html;
+}
+
+function buildTrendAnalysis(stats, unit, dir, thr, values, labels) {
+  // Guard: if std is 0 (all identical values), use 1 as floor to avoid false triggers
+  const tStd = stats.std || 1;
+  const rising  = stats.slope > tStd * 0.05;
+  const falling = stats.slope < -tStd * 0.05;
+  const stable  = !rising && !falling;
+  const icon    = rising ? '📈' : falling ? '📉' : '➡️';
+  const dirLabel= rising ? 'Rising' : falling ? 'Falling' : 'Stable';
+  // Concern: trend moving toward worse. Favorable: trend moving toward better.
+  // Stable is neutral — neither concerning nor favorable.
+  const concern  = (dir === 'higher' && rising) || (dir === 'lower' && falling);
+  const favorable = (dir === 'higher' && falling) || (dir === 'lower' && rising);
+  const statusLabel = concern ? '— Concerning' : favorable ? '— Favorable' : '— Neutral';
+  const statusBg = concern ? 'var(--red-l)' : favorable ? 'var(--green-l)' : 'var(--gray-100)';
+
+  let html = `<div class="trend-block" style="background:${statusBg}">
+    <div class="trend-icon">${icon}</div>
+    <div>
+      <div class="trend-label">${dirLabel} Trend ${statusLabel}</div>
+      <div class="trend-desc">Slope: ${formatVal(stats.slope, unit)} per period &nbsp;|&nbsp; Consecutive increases: ${stats.consec}</div>
+    </div>
+  </div>`;
+
+  const recommendations = [];
+  if (stats.consec >= 3) recommendations.push(`⚠ <strong>${stats.consec} consecutive increases</strong> — Yellow trend trigger (≥3) has been reached.`);
+  if (stats.consec >= 5) recommendations.push(`🔴 <strong>${stats.consec} consecutive increases</strong> — Red escalation threshold (≥5) reached.`);
+  if (stable) recommendations.push('✓ Metric is stable — no directional trend detected.');
+  if (stats.n < 6) recommendations.push('⚠ Fewer than 6 periods — trend analysis is preliminary.');
+
+  // Time-to-breach estimate (only when trend is worsening)
+  if (concern && stats.slope !== 0) {
+    const latest = stats.latest;
+    const slopeAbs = Math.abs(stats.slope);
+    if (dir === 'higher') {
+      if (latest < thr.yellow) {
+        const pToY = Math.ceil((thr.yellow - latest) / slopeAbs);
+        const pToR = Math.ceil((thr.red - latest) / slopeAbs);
+        recommendations.push(`📐 <strong>Time-to-breach estimate:</strong> At current trajectory, Yellow in ~${pToY} period${pToY !== 1 ? 's' : ''}, Red in ~${pToR} period${pToR !== 1 ? 's' : ''}.`);
+      } else if (latest < thr.red) {
+        const pToR = Math.ceil((thr.red - latest) / slopeAbs);
+        recommendations.push(`📐 <strong>Time-to-breach estimate:</strong> Already in Yellow. At current trajectory, Red in ~${pToR} period${pToR !== 1 ? 's' : ''}.`);
+      }
+    } else {
+      if (latest > thr.yellow) {
+        const pToY = Math.ceil((latest - thr.yellow) / slopeAbs);
+        const pToR = Math.ceil((latest - thr.red) / slopeAbs);
+        recommendations.push(`📐 <strong>Time-to-breach estimate:</strong> At current trajectory, Yellow in ~${pToY} period${pToY !== 1 ? 's' : ''}, Red in ~${pToR} period${pToR !== 1 ? 's' : ''}.`);
+      } else if (latest > thr.red) {
+        const pToR = Math.ceil((latest - thr.red) / slopeAbs);
+        recommendations.push(`📐 <strong>Time-to-breach estimate:</strong> Already in Yellow. At current trajectory, Red in ~${pToR} period${pToR !== 1 ? 's' : ''}.`);
+      }
+    }
+  }
+
+  // Period-by-period RAG table
+  // Note: 'values' may contain nulls (e.g., first period of moving average).
+  // 'labels' is from validRows and is already filtered — use a separate
+  // counter to keep labels aligned with valid values only.
+  let tbl = '<table class="period-tbl"><thead><tr><th>Period</th><th>Value</th><th>vs Prior</th><th>Risk Level</th></tr></thead><tbody>';
+  let tblValidIdx = 0;
+  let tblPriorVal = null;
+  values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const label = labels[tblValidIdx] || `Period ${tblValidIdx+1}`;
+    const prior = tblPriorVal;
+    const chg = (prior !== null && prior !== undefined && prior !== 0) ? ((v - prior) / Math.abs(prior) * 100).toFixed(1) + '%' : '—';
+    const arrow = prior !== null && prior !== undefined ? (v > prior ? '↑' : v < prior ? '↓' : '→') : '';
+    const rag = getRAG(v, thr, dir);
+    const hasPrior = prior !== null && prior !== undefined;
+    const worsening = hasPrior && ((dir === 'higher' && v > prior) || (dir === 'lower' && v < prior));
+    const chgColor = worsening ? 'var(--red)' : 'var(--green)';
+    tbl += `<tr><td>${label}</td><td><strong>${formatVal(v, unit)}</strong></td>
+      <td style="color:${chgColor}">${arrow} ${chg}</td>
+      <td class="${rag.cls}">${rag.label} (${rag.score})</td></tr>`;
+    tblPriorVal = v;
+    tblValidIdx++;
+  });
+  tbl += '</tbody></table>';
+
+  html += `<div style="margin-top:12px">${recommendations.map(r => `<div style="font-size:13px;margin-bottom:4px">${r}</div>`).join('')}</div>`;
+  html += `<div style="margin-top:12px;font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:6px">Period-by-Period Risk Levels:</div>${tbl}`;
+  document.getElementById('trend-analysis').innerHTML = html;
+}
+
+function buildVelocityAnalysis(stats, unit, values, labels, dir, thr) {
+  const validVals = values.filter(v => v !== null && !isNaN(v));
+  const vels = [];
+  validVals.forEach((v, i) => {
+    if (i === 0) return;
+    const prev = validVals[i-1];
+    if (prev !== 0) vels.push((v - prev) / Math.abs(prev) * 100);
+    else vels.push(null);
+  });
+
+  // Direction-aware: a velocity is "worsening" only when it moves toward risk
+  // higher-is-worse: positive velocity = worsening, negative = improving
+  // lower-is-worse:  negative velocity = worsening, positive = improving
+  const isWorsening = (vel) => dir === 'higher' ? vel > 0 : vel < 0;
+
+  const validVels = vels.filter(v => v !== null);
+  const maxVel = validVels.length ? Math.max(...validVels.map(Math.abs)) : 0;
+  let maxVelLabel = '';
+  if (maxVel > 0) {
+    const maxVelIdx = vels.findIndex(v => v !== null && Math.abs(v) === maxVel);
+    if (maxVelIdx >= 0) maxVelLabel = labels[maxVelIdx + 1] || '';
+  }
+  const lastVel = stats.vel;
+
+  // Only count worsening-direction spikes as trigger events
+  const worseningSpikes = validVels.filter(v => isWorsening(v) && Math.abs(v) > 25).length;
+
+  let html = `<div style="font-size:13px;margin-bottom:8px">
+    <strong>Latest period velocity:</strong> ${lastVel !== null && lastVel !== undefined ? (lastVel > 0 ? '+' : '') + lastVel.toFixed(1) + '%' : '—'}
+    &nbsp;|&nbsp; <strong>Max velocity observed:</strong> ${maxVel.toFixed(1)}%${maxVelLabel ? ' (' + maxVelLabel + ')' : ''}
+    &nbsp;|&nbsp; <strong>Worsening spikes &gt;25%:</strong> ${worseningSpikes}
+  </div>`;
+
+  if (lastVel !== null && lastVel !== undefined && isWorsening(lastVel) && Math.abs(lastVel) > 25) {
+    html += `<div class="note warn">⚠ Latest period velocity (${lastVel.toFixed(1)}%) is a worsening spike exceeding the 25% single-period escalation trigger.</div>`;
+  } else if (lastVel !== null && lastVel !== undefined && isWorsening(lastVel) && Math.abs(lastVel) > 15) {
+    html += `<div class="note warn" style="border-left-color:#ca8a04">⚠ Latest period velocity (${(lastVel > 0 ? '+' : '') + lastVel.toFixed(1)}%) is an elevated worsening movement (15–25% range) — warrants enhanced monitoring.</div>`;
+  } else if (lastVel !== null && lastVel !== undefined && !isWorsening(lastVel) && Math.abs(lastVel) > 25) {
+    html += `<div class="note good">✓ Latest period velocity (${(lastVel > 0 ? '+' : '') + lastVel.toFixed(1)}%) is a large favorable movement.</div>`;
+  }
+  if (worseningSpikes >= 3) {
+    html += `<div class="note warn">⚠ Worsening velocity spikes &gt;25% have occurred ${worseningSpikes} times — consider whether thresholds should be tightened.</div>`;
+  }
+  if (worseningSpikes === 0) {
+    html += `<div class="note good">✓ No worsening velocity spikes exceeding 25% detected in history.</div>`;
+  }
+
+  // Velocity table — flags are direction-aware
+  let tbl = '<table class="period-tbl"><thead><tr><th>Period</th><th>Value</th><th>Velocity (MoM %)</th><th>Flag</th><th>Risk Level</th></tr></thead><tbody>';
+  let validIdx = 0;
+  values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const label = labels[validIdx] || `Period ${validIdx+1}`;
+    const vel = validIdx > 0 ? vels[validIdx - 1] : null;
+    let flag = '—';
+    let velColor = '';
+    if (vel !== null) {
+      const worsening = isWorsening(vel);
+      const absVel = Math.abs(vel);
+      if (worsening && absVel > 25) {
+        flag = '⚠ Spike'; velColor = 'color:var(--red);font-weight:600';
+      } else if (worsening && absVel > 15) {
+        flag = '△ Elevated';
+      } else if (!worsening && absVel > 25) {
+        flag = '✓ Improvement'; velColor = 'color:var(--green);font-weight:600';
+      }
+    }
+    const velRag = thr ? getRAG(v, thr, dir) : { label: '—', cls: '' };
+    tbl += `<tr><td>${label}</td><td>${formatVal(v, unit)}</td>
+      <td style="${velColor}">${vel !== null ? (vel > 0 ? '+' : '') + vel.toFixed(1) + '%' : '—'}</td>
+      <td>${flag}</td><td class="${velRag.cls}">${velRag.label}</td></tr>`;
+    validIdx++;
+  });
+  tbl += '</tbody></table>';
+  html += tbl;
+  document.getElementById('velocity-analysis').innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CHARTS (SVG)
+// ════════════════════════════════════════════════════════════════
+function drawMiniChart(labels, values, minV, maxV) {
+  const W = 220, H = 55, pad = 8;
+  const vals = values.map(v => (v === null || isNaN(v)) ? null : v);
+  const filteredVals = vals.filter(v => v !== null);
+  if (!filteredVals.length) return `<svg width="${W}" height="${H}"><text x="50%" y="50%" text-anchor="middle" fill="#9ca3af" font-size="11">No data</text></svg>`;
+
+  const range = maxV - minV || 1;
+  const xStep = (W - pad * 2) / Math.max(vals.length - 1, 1);
+
+  const pts = vals.map((v, i) => {
+    if (v === null) return null;
+    const x = pad + i * xStep;
+    const y = H - pad - ((v - minV) / range) * (H - pad * 2);
+    return `${x},${y}`;
+  }).filter(Boolean);
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="mini-chart">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="#1a56db" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.map(p => `<circle cx="${p.split(',')[0]}" cy="${p.split(',')[1]}" r="2" fill="#1a56db"/>`).join('')}
+  </svg>`;
+}
+
+function drawPreviewChart(labels, values, minV, maxV, unit) {
+  const W = 700, H = 120, padL = 50, padR = 20, padT = 10, padB = 30;
+  const cW = W - padL - padR;
+  const cH = H - padT - padB;
+  const range = maxV - minV || 1;
+  const n = values.length;
+  const xStep = cW / Math.max(n - 1, 1);
+
+  const pts = values.map((v, i) => {
+    if (v === null || isNaN(v)) return null;
+    const x = padL + i * xStep;
+    const y = padT + cH - ((v - minV) / range) * cH;
+    return { x, y, v };
+  });
+
+  let path = '';
+  pts.forEach((p, i) => {
+    if (!p) return;
+    path += (path ? 'L' : 'M') + `${p.x},${p.y}`;
+  });
+
+  const yLabels = [minV, minV + range / 2, maxV].map((v, i) => {
+    const y = padT + cH - (i * cH / 2);
+    return `<text x="${padL - 5}" y="${y + 4}" text-anchor="end" font-size="9" fill="#6b7280">${formatVal(v, unit)}</text>`;
+  });
+
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:120px">
+    ${yLabels.join('')}
+    <path d="${path}" fill="none" stroke="#1a56db" stroke-width="2" stroke-linejoin="round"/>
+    ${pts.filter(Boolean).map(p => `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#1a56db"/>`).join('')}
+    ${labels.map((lbl, i) => {
+      if (i % Math.ceil(n / 8) !== 0 && i !== n - 1) return '';
+      const x = padL + i * xStep;
+      return `<text x="${x}" y="${H - 2}" text-anchor="middle" font-size="9" fill="#9ca3af">${lbl}</text>`;
+    }).join('')}
+  </svg>`;
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// RISK IMPACT STRENGTH
+// ════════════════════════════════════════════════════════════════
+
+const IMPACT_CATS = ['Strategic','Liquidity','Market/Interest Rate','Credit','Operational','Regulatory and Compliance'];
+const IMPACT_LEVELS = [
+  { value: 0, label: '-- Select --', pct: 0 },
+  { value: 1, label: 'Very Low', pct: 20 },
+  { value: 2, label: 'Low', pct: 40 },
+  { value: 3, label: 'Moderate', pct: 60 },
+  { value: 4, label: 'High', pct: 80 },
+  { value: 5, label: 'Very High', pct: 100 }
+];
+
+function buildRiskImpactStrength() {
+  const el = document.getElementById('risk-impact-strength');
+  if (!el) return;
+
+  // Preserve existing selections
+  IMPACT_CATS.forEach((cat, i) => {
+    const sel = document.getElementById(`impact-sel-${i}`);
+    if (sel) S.impactStrength[i] = parseInt(sel.value) || 0;
+  });
+
+  let html = `<table class="impact-tbl">
+    <thead><tr><th>Risk Category</th><th>Impact Level</th><th>Impact %</th></tr></thead>
+    <tbody>`;
+
+  IMPACT_CATS.forEach((cat, i) => {
+    const curVal = S.impactStrength[i] || 0;
+    const curLevel = IMPACT_LEVELS.find(l => l.value === curVal) || IMPACT_LEVELS[0];
+    const options = IMPACT_LEVELS.map(l =>
+      `<option value="${l.value}"${l.value === curVal ? ' selected' : ''}>${l.value === 0 ? l.label : l.value + ' — ' + l.label + ' (' + l.pct + '%)'}</option>`
+    ).join('');
+    const pctColor = curLevel.pct >= 80 ? 'var(--red)' : curLevel.pct >= 60 ? 'var(--yellow)' : curLevel.pct > 0 ? 'var(--green)' : 'var(--gray-400)';
+    html += `<tr>
+      <td style="font-weight:600">${cat}</td>
+      <td><select id="impact-sel-${i}" onchange="updateImpact(${i}, this.value)">${options}</select></td>
+      <td class="impact-pct" style="color:${pctColor}">${curVal > 0 ? curLevel.pct + '%' : '—'}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+
+  // Summary
+  let ratedCount = 0, totalPct = 0;
+  IMPACT_CATS.forEach((_, i) => {
+    const val = S.impactStrength[i] || 0;
+    if (val > 0) {
+      ratedCount++;
+      const lvl = IMPACT_LEVELS.find(l => l.value === val);
+      totalPct += lvl ? lvl.pct : 0;
+    }
+  });
+  const avgPct = ratedCount > 0 ? Math.round(totalPct / ratedCount) : 0;
+
+  html += `<div class="impact-summary">
+    <strong>Categories rated:</strong> ${ratedCount} of ${IMPACT_CATS.length} &nbsp;|&nbsp;
+    <strong>Average impact:</strong> ${avgPct}% &nbsp;|&nbsp;
+    <strong>Total combined:</strong> ${totalPct}%
+    <div style="font-size:11px;color:var(--gray-500);margin-top:4px">Combined percentages do not need to equal 100%. Each category is rated independently.</div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function updateImpact(idx, val) {
+  S.impactStrength[idx] = parseInt(val) || 0;
+  buildRiskImpactStrength();
+}
+
+// ════════════════════════════════════════════════════════════════
+// THRESHOLD FORMAT TOGGLE & RANGE INPUTS
+// ════════════════════════════════════════════════════════════════
+function setThrFormat(fmt) {
+  S.thrFormat = fmt;
+  document.getElementById('fmt-point').classList.toggle('sel', fmt === 'point');
+  document.getElementById('fmt-range').classList.toggle('sel', fmt === 'range');
+  buildAnalysis();
+}
+
+function onRangeInput(key, bound, val) {
+  S.thrRanges[key][bound] = val !== '' ? parseFloat(val) : null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// METRIC RELATIONSHIPS
+// ════════════════════════════════════════════════════════════════
+let corrIdx = 0, ctrlIdx = 0;
+
+function setRelRadio(type, val, el) {
+  const group = el.parentElement;
+  group.querySelectorAll('.rel-radio').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  if (type === 'corr') {
+    S.corrStatus = val;
+    document.getElementById('corr-table-wrap').style.display = val === 'Yes' ? 'block' : 'none';
+    if (val === 'Yes' && S.correlations.length === 0) addCorrRow();
+  } else {
+    S.ctrlStatus = val;
+    document.getElementById('ctrl-table-wrap').style.display = val === 'Yes' ? 'block' : 'none';
+    if (val === 'Yes' && S.linkedControls.length === 0) addCtrlRow();
+  }
+}
+
+function addCorrRow() {
+  const id = corrIdx++;
+  S.correlations.push({ id, name:'', direction:'', strength:'', explanation:'' });
+  const tb = document.getElementById('corr-tbody');
+  tb.insertAdjacentHTML('beforeend',
+    `<tr id="corr-row-${id}">
+      <td><input type="text" placeholder="Metric name" oninput="setCorrVal(${id},'name',this.value)"></td>
+      <td><select onchange="setCorrVal(${id},'direction',this.value)">
+        <option value="">--</option><option value="Same">Same</option><option value="Opposite">Opposite</option>
+      </select></td>
+      <td><select onchange="setCorrVal(${id},'strength',this.value)">
+        <option value="">--</option><option value="Very Low">Very Low</option><option value="Low">Low</option>
+        <option value="Moderate">Moderate</option><option value="High">High</option><option value="Very High">Very High</option>
+      </select></td>
+      <td><textarea placeholder="Explain the relationship" oninput="setCorrVal(${id},'explanation',this.value)"></textarea></td>
+      <td><button class="del-rel-btn" onclick="delCorrRow(${id})">✕</button></td>
+    </tr>`);
+}
+
+function setCorrVal(id, field, val) {
+  const row = S.correlations.find(r => r.id === id);
+  if (row) row[field] = val;
+}
+
+function delCorrRow(id) {
+  S.correlations = S.correlations.filter(r => r.id !== id);
+  document.getElementById(`corr-row-${id}`)?.remove();
+}
+
+function addCtrlRow() {
+  const id = ctrlIdx++;
+  S.linkedControls.push({ id, name:'', ctrlId:'', relationship:'', explanation:'' });
+  const tb = document.getElementById('ctrl-tbody');
+  tb.insertAdjacentHTML('beforeend',
+    `<tr id="ctrl-row-${id}">
+      <td><input type="text" placeholder="Control name" oninput="setCtrlVal(${id},'name',this.value)"></td>
+      <td><input type="text" placeholder="e.g. CTL-001" oninput="setCtrlVal(${id},'ctrlId',this.value)" style="width:80px"></td>
+      <td><select onchange="setCtrlVal(${id},'relationship',this.value)">
+        <option value="">--</option><option value="Preventative">Preventative</option><option value="Detective">Detective</option>
+        <option value="Corrective">Corrective</option><option value="Directive">Directive</option>
+      </select></td>
+      <td><textarea placeholder="Explain the linkage" oninput="setCtrlVal(${id},'explanation',this.value)"></textarea></td>
+      <td><button class="del-rel-btn" onclick="delCtrlRow(${id})">✕</button></td>
+    </tr>`);
+}
+
+function setCtrlVal(id, field, val) {
+  const row = S.linkedControls.find(r => r.id === id);
+  if (row) row[field] = val;
+}
+
+function delCtrlRow(id) {
+  S.linkedControls = S.linkedControls.filter(r => r.id !== id);
+  document.getElementById(`ctrl-row-${id}`)?.remove();
+}
+
+// ════════════════════════════════════════════════════════════════
+// REPORTING PERIOD
+// ════════════════════════════════════════════════════════════════
+function setRptPeriod(val, el) {
+  S.reportingPeriod = val;
+  document.querySelectorAll('#rpt-grid .rel-radio').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('rpt-other-wrap').style.display = val === 'Other' ? 'block' : 'none';
+  clearErr('err-rpt-period');
+}
+
+function drawMainChart(labels, values, thr, dir, unit) {
+  const W = 800, H = 240, padL = 60, padR = 20, padT = 12, padB = 36;
+  const cW = W - padL - padR;
+  const cH = H - padT - padB;
+  const validVals = values.filter(v => v !== null && !isNaN(v));
+  const minV = Math.min(...validVals, thr.yellow) * 0.9;
+  const maxV = Math.max(...validVals, thr.red) * 1.1 || 1;
+  const range = maxV - minV;
+  const n = values.length;
+  const xStep = cW / Math.max(n - 1, 1);
+
+  const yPos = v => padT + cH - ((v - minV) / range) * cH;
+  const xPos = i => padL + i * xStep;
+
+  // 3-band background: Green / Yellow / Red
+  const gT = thr.yellow;
+  const rT = thr.red;
+  const zones = dir === 'higher' ? [
+    { top: yPos(rT),  bot: padT + cH, fill: '#dcfce7' },
+    { top: yPos(gT),  bot: yPos(rT),  fill: '#fef9c3' },
+    { top: padT,      bot: yPos(gT),  fill: '#fee2e2' }
+  ] : [
+    { top: padT,      bot: yPos(rT),  fill: '#dcfce7' },
+    { top: yPos(rT),  bot: yPos(gT),  fill: '#fef9c3' },
+    { top: yPos(gT),  bot: padT + cH, fill: '#fee2e2' }
+  ];
+
+  const zonesSvg = zones.map(z => {
+    const top = Math.max(padT, Math.min(z.top, z.bot));
+    const bot = Math.min(padT + cH, Math.max(z.top, z.bot));
+    return `<rect x="${padL}" y="${top}" width="${cW}" height="${bot - top}" fill="${z.fill}" opacity=".7"/>`;
+  }).join('');
+
+  // Yellow and Red threshold lines
+  const thrOverlay = [
+    { key: 'yellow', color: '#ca8a04', label: 'Yellow' },
+    { key: 'red', color: '#dc2626', label: 'Red' }
+  ].map(t => {
+    const val = thr[t.key];
+    if (val === undefined || val === null) return '';
+    const y = yPos(val);
+    if (y < padT - 1 || y > padT + cH + 1) return '';
+    return `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${padL+cW}" y2="${y.toFixed(1)}" stroke="${t.color}" stroke-width="1.5" stroke-dasharray="5 3" opacity=".85"/>` +
+           `<rect x="${padL+cW-36}" y="${y-7}" width="36" height="13" fill="${t.color}" rx="2"/>` +
+           `<text x="${padL+cW-18}" y="${y+2}" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">${t.label}</text>`;
+  }).join('');
+
+  // Data line
+  const pts = values.map((v, i) => {
+    if (v === null || isNaN(v)) return null;
+    return { x: xPos(i), y: yPos(v), v, lbl: labels[i] };
+  });
+
+  let path = '';
+  pts.forEach(p => {
+    if (!p) return;
+    path += (path ? 'L' : 'M') + `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+  });
+
+  // Dots with RAG color
+  const dotCols = { Green:'#16a34a', Yellow:'#ca8a04', Red:'#dc2626' };
+  const dots = pts.filter(Boolean).map(p => {
+    const rag = getRAG(p.v, thr, dir);
+    return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${dotCols[rag.label] || '#1a56db'}" stroke="#fff" stroke-width="1.5"/>`;
+  }).join('');
+
+  // Y-axis labels
+  const ySteps = 5;
+  const yLabels = Array.from({length: ySteps + 1}, (_, i) => {
+    const v = minV + (i / ySteps) * range;
+    const y = yPos(v);
+    return `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="9" fill="#6b7280">${formatVal(v, unit)}</text>
+      <line x1="${padL - 2}" y1="${y}" x2="${padL}" y2="${y}" stroke="#e5e7eb"/>`;
+  }).join('');
+
+  // X-axis labels
+  const xLabels = labels.map((lbl, i) => {
+    if (n > 12 && i % 3 !== 0 && i !== n - 1) return '';
+    if (n <= 12 && n > 6 && i % 2 !== 0 && i !== n - 1) return '';
+    return `<text x="${xPos(i).toFixed(1)}" y="${H - 4}" text-anchor="middle" font-size="9" fill="#9ca3af">${lbl}</text>`;
+  }).join('');
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" id="main-chart" style="width:100%;height:240px">
+    <rect x="${padL}" y="${padT}" width="${cW}" height="${cH}" fill="#f9fafb"/>
+    ${zonesSvg}
+    ${Array.from({length: ySteps + 1}, (_, i) => {
+      const y = padT + (i / ySteps) * cH;
+      return `<line x1="${padL}" y1="${y}" x2="${padL + cW}" y2="${y}" stroke="#e5e7eb" stroke-width=".5"/>`;
+    }).join('')}
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + cH}" stroke="#d1d5db"/>
+    <line x1="${padL}" y1="${padT + cH}" x2="${padL + cW}" y2="${padT + cH}" stroke="#d1d5db"/>
+    ${thrOverlay}
+    ${yLabels}
+    <path d="${path}" fill="none" stroke="#1a56db" stroke-width="2.5" stroke-linejoin="round"/>
+    ${dots}
+    ${xLabels}
+  </svg>`;
+
+  document.getElementById('chart-wrap').querySelector('svg')?.remove();
+  document.getElementById('chart-wrap').insertAdjacentHTML('afterbegin', svg);
+}
+
+// ════════════════════════════════════════════════════════════════
+// NAVIGATION & VALIDATION
+// ════════════════════════════════════════════════════════════════
+function nextStep(from) {
+  const errs = validateStep(from);
+  if (errs.length) { showVP(errs); return; }
+  hideVP();
+
+  if (from === 2) {
+    const validRows = getValidRows();
+    buildMethodGrid(validRows);
+  }
+  if (from === 3) {
+    buildAnalysis();
+  }
+  if (from === 4) {
+    generateOutput();
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('output-panel').classList.add('show');
+    window.scrollTo(0, 0);
+    return;
+  }
+  goStep(from + 1);
+}
+
+function goStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('output-panel').classList.remove('show');
+  document.getElementById(`step-${n}`).classList.add('active');
+  S.currentStep = n;
+  updateProgress();
+  window.scrollTo(0, 0);
+  hideVP();
+}
+
+function goStepIfValid(n) { if (n <= S.currentStep) goStep(n); }
+
+function updateProgress() {
+  const pct = ((S.currentStep - 1) / S.totalSteps) * 100;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.querySelectorAll('.sdot').forEach((d, i) => {
+    d.classList.toggle('active', i + 1 === S.currentStep);
+    d.classList.toggle('done', i + 1 < S.currentStep);
+  });
+}
+
+function validateStep(n) {
+  const errs = [];
+  if (n === 1) {
+    if (!getV('q-name')) { showFerr('err-name'); errs.push('Metric name'); }
+    if (!getV('q-desc')) { showFerr('err-desc'); errs.push('Description'); }
+    if (!getV('q-risk')) { showFerr('err-risk'); errs.push('Risk statement'); }
+    if (!getR('q-cat'))  { showFerr('err-cat');  errs.push('Risk category'); }
+    if (!getR('q-signal')){ showFerr('err-signal'); errs.push('Signal type'); }
+  }
+  if (n === 2) {
+    const valid = getValidRows();
+    if (valid.length < 6) {
+      showFerr('err-data', `At least 6 complete periods required. Currently: ${valid.length}.`);
+      errs.push('Minimum 6 periods of data');
+    }
+  }
+  if (n === 3) {
+    if (!S.method) { showFerr('err-method'); errs.push('Calculation method'); }
+  }
+  if (n === 4) {
+    // Preserve action text from textareas
+    ['green','yellow','red'].forEach(k => {
+      const el = document.getElementById(`thr-action-${k}`);
+      if (el) S.thrActions[k] = el.value;
+    });
+    if (!S.thrActions.green?.trim()) errs.push('Actions required for Green zone');
+    if (!S.thrActions.yellow?.trim()) errs.push('Actions required for Yellow zone');
+    if (!S.thrActions.red?.trim()) errs.push('Actions required for Red zone');
+    if (!getV('q-validation')) { showFerr('err-validation'); errs.push('Validation method'); }
+    if (!S.reportingPeriod) { showFerr('err-rpt-period'); errs.push('Reporting period'); }
+    if (!getV('q-rpt-justify')) { showFerr('err-rpt-justify'); errs.push('Reporting period justification'); }
+    if (!getV('q-source')) { showFerr('err-source'); errs.push('System of record'); }
+    if (!getV('q-owner'))  { showFerr('err-owner');  errs.push('Escalation owner'); }
+  }
+  return errs;
+}
+
+function showVP(errs) {
+  const p = document.getElementById('val-panel');
+  document.getElementById('val-list').innerHTML = errs.map(e => `<div class="val-item">• ${e}</div>`).join('');
+  p.classList.add('show');
+  p.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function hideVP() { document.getElementById('val-panel').classList.remove('show'); }
+
+// ════════════════════════════════════════════════════════════════
+// OUTPUT GENERATION
+// ════════════════════════════════════════════════════════════════
+function generateOutput() {
+  const m     = S._methods.find(x => x.id === S.method);
+  const stats = S.stats;
+  const dir   = getR('q-dir') || 'higher';
+  const validRows = getValidRows();
+  const labels    = validRows.map(r => r.label);
+  const cat   = getR('q-cat');
+
+  const thr = {
+    yellow: parseFloat(document.getElementById('thr-yellow')?.value) || S.thresholds.yellow,
+    red: parseFloat(document.getElementById('thr-red')?.value) || S.thresholds.red
+  };
+
+  const latestVal  = stats.latest;
+  const latestRAG  = latestVal !== undefined ? getRAG(latestVal, thr, dir) : { label:'—', score:'—' };
+  const numLabel   = getV('q-num-label') || 'Numerator';
+  const denomLabel = S.hasDenom ? (getV('q-denom-label') || 'Denominator') : 'N/A';
+  const oStd = stats.std || 1;
+  const trendDir   = stats.slope > oStd * 0.05 ? 'Rising' : stats.slope < -oStd * 0.05 ? 'Falling' : 'Stable';
+  const trendReq   = stats.n >= 3 && validRows.length >= 3;
+  const velReq     = validRows.length >= 6;
+
+  // Build impact strength summary for output
+  const impactRows = IMPACT_CATS.map((ic, i) => {
+    const val = S.impactStrength[i] || 0;
+    if (val === 0) return null;
+    const lvl = IMPACT_LEVELS.find(l => l.value === val);
+    return [ic, `${lvl.value} — ${lvl.label} (${lvl.pct}%)`];
+  }).filter(Boolean);
+
+  // Period data table for output
+  let periodRows = '<table class="period-tbl"><thead><tr><th>Period</th><th>Numerator</th>';
+  if (S.hasDenom) periodRows += '<th>Denominator</th>';
+  periodRows += `<th>${m.unit}</th><th>Risk Level</th></tr></thead><tbody>`;
+  m.values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const r = validRows[i];
+    const rag = getRAG(v, thr, dir);
+    const prior = i > 0 ? m.values.slice(0, i).filter(x => x !== null && !isNaN(x)).slice(-1)[0] : null;
+    const chg = (prior !== null && prior !== undefined && prior !== 0)
+      ? ' (' + (v > prior ? '+' : '') + ((v - prior) / Math.abs(prior) * 100).toFixed(1) + '%)'
+      : '';
+    periodRows += `<tr><td>${r.label}</td><td>${parseFloat(r.num).toLocaleString()}</td>`;
+    if (S.hasDenom) periodRows += `<td>${parseFloat(r.denom).toLocaleString()}</td>`;
+    periodRows += `<td><strong>${formatVal(v, m.unit)}${chg}</strong></td><td class="${rag.cls}">${rag.label}</td></tr>`;
+  });
+  periodRows += '</tbody></table>';
+
+  const sections = [
+    {
+      title: 'SECTION 1 — Identity',
+      fields: [
+        ['Q1. Metric Name', getV('q-name')],
+        ['Q2. Plain Language Description', getV('q-desc')],
+        ['Q3. Metric Type', 'KRI'],
+        ['Q5. Escalation Owner', getV('q-owner')],
+      ]
+    },
+    {
+      title: 'SECTION 2 — Risk Context',
+      fields: [
+        ['Q7. Risk Statement', getV('q-risk')],
+        ['Q8. Primary Risk Category', cat],
+        ['Q9. Signal Type', getR('q-signal')],
+        ['Q10. Direction of Risk', dir === 'higher' ? 'Higher is worse' : 'Lower is worse'],
+      ]
+    },
+    {
+      title: 'SECTION 3 — Signal Determination',
+      fields: [
+        ['Q11. Population / Denominator Exists', S.hasDenom ? 'Yes' : 'No'],
+        ['Numerator', numLabel],
+        ['Denominator', denomLabel],
+        ['Q12. Reporting Periods Available', `${validRows.length} periods (${labels[0]} – ${labels[labels.length-1]})`],
+        ['Q13. Event Frequency', validRows.length >= 12 ? 'Frequently (monthly, 12+ periods)' : 'Occasionally'],
+      ]
+    },
+    {
+      title: 'SECTION 3a — Formula Derivation',
+      fields: [
+        ['Q18. Formula Type', m.name],
+        ['Q19. Formula Statement', null, m.formula],
+        ['Q20. Unit of Measure', m.unit],
+        ['Q21. Direction of Risk', dir === 'higher' ? 'Higher is worse (standard)' : 'Lower is worse (inverted thresholds)'],
+      ]
+    },
+    {
+      title: 'SECTION 4 — Data & Inputs',
+      fields: [
+        ['Q23. System of Record', getV('q-source')],
+        ['Q24. Reporting Period', S.reportingPeriod === 'Other' ? (S.reportingPeriodOther || 'Other') : (S.reportingPeriod || '—')],
+        ['Reporting Justification', getV('q-rpt-justify') || '—'],
+        ['Q25. Historical Data Coverage', `${validRows.length} periods (${labels[0]} – ${labels[labels.length-1]})`],
+        ['Q26. Data Limitations', 'None identified at build time — review before submission'],
+      ]
+    },
+    {
+      title: 'SECTION 5 — Thresholds',
+      fields: [
+        ['Threshold Model', 'Green / Yellow / Red (3 bands)'],
+        ['Derivation Method', (THR_METHODS[S.thrMethod] || THR_METHODS.percentile).name],
+        ['Yellow Threshold', formatVal(thr.yellow, m.unit)],
+        ['Red Threshold', formatVal(thr.red, m.unit)],
+        ...(S.thrMethod === 'constraint' && S.constraintLimit !== null ? [['External Limit', formatVal(S.constraintLimit, m.unit)]] : []),
+        ...(S.thrFormat === 'range' ? [
+          ['Threshold Format', 'Ranges'],
+          ['Green Range', S.thrRanges.green.low !== null && S.thrRanges.green.high !== null ? `${formatVal(S.thrRanges.green.low, m.unit)} – ${formatVal(S.thrRanges.green.high, m.unit)}` : '—'],
+          ['Yellow Range', S.thrRanges.yellow.low !== null && S.thrRanges.yellow.high !== null ? `${formatVal(S.thrRanges.yellow.low, m.unit)} – ${formatVal(S.thrRanges.yellow.high, m.unit)}` : '—'],
+          ['Red Range', S.thrRanges.red.low !== null && S.thrRanges.red.high !== null ? `${formatVal(S.thrRanges.red.low, m.unit)} – ${formatVal(S.thrRanges.red.high, m.unit)}` : '—'],
+        ] : [['Threshold Format', 'Point Estimates']]),
+      ]
+    },
+    {
+      title: 'SECTION 5.3 — Actions Required When Breached',
+      fields: [
+        ['Green Zone Action', S.thrActions.green || '—'],
+        ['Yellow Zone Action', S.thrActions.yellow || '—'],
+        ['Red Zone Action', S.thrActions.red || '—'],
+      ]
+    },
+    {
+      title: 'SECTION 7 — Trend & Velocity (Data-Derived)',
+      fields: [
+        ['Trend Required', trendReq ? 'Yes' : 'No (insufficient data)'],
+        ['Trend Direction (current)', trendDir],
+        ['Trend Method', 'Consecutive Increases (3-period default)'],
+        ['Consecutive Increases at Submission', `${stats.consec || 0} period(s)`],
+        ['Consecutive Increase → Yellow Trigger', '3 consecutive increases while in Green'],
+        ['Consecutive Increase → Red Trigger', '5 consecutive increases while in Yellow'],
+        ['Velocity Required', velReq ? 'Yes' : 'No (insufficient data)'],
+        ['Velocity Method', '% Change month-over-month'],
+        ['Latest Velocity', stats.vel !== null && stats.vel !== undefined ? (stats.vel > 0 ? '+' : '') + stats.vel.toFixed(1) + '%' : '—'],
+        ['Velocity Escalation Trigger', '>25% single-period change → elevated review'],
+      ]
+    },
+    {
+      title: 'SECTION 8 — Risk Impact Strength',
+      fields: [
+        ['Primary Risk Category', cat],
+        ['Current Risk Level (Latest Period)', `${latestRAG.label} (Score: ${latestRAG.score})`],
+        ...impactRows,
+        ['Historical Mean', `${stats.mean !== undefined ? formatVal(stats.mean, m.unit) : '—'}`],
+        ['Historical Std Dev', `${stats.std !== undefined ? formatVal(stats.std, m.unit) : '—'}`],
+        ['Data Percentiles', `P25=${formatVal(stats.p25||0, m.unit)} | P50=${formatVal(stats.p50||0, m.unit)} | P75=${formatVal(stats.p75||0, m.unit)} | P90=${formatVal(stats.p90||0, m.unit)}`],
+      ]
+    },
+    {
+      title: 'SECTION 8.5 — Metric Relationships',
+      fields: [
+        ['KRI Correlations', S.corrStatus || '—'],
+        ...((S.corrStatus === 'Yes' && S.correlations.length) ? S.correlations.filter(c => c.name).map(c =>
+          [`↳ ${c.name}`, `Direction: ${c.direction || '—'} | Strength: ${c.strength || '—'} | ${c.explanation || '—'}`]
+        ) : []),
+        ['Linked Controls', S.ctrlStatus || '—'],
+        ...((S.ctrlStatus === 'Yes' && S.linkedControls.length) ? S.linkedControls.filter(c => c.name).map(c =>
+          [`↳ ${c.name}`, `ID: ${c.ctrlId || '—'} | Type: ${c.relationship || '—'} | ${c.explanation || '—'}`]
+        ) : []),
+      ]
+    },
+    {
+      title: 'SECTION 8.6 — Stress Scenarios',
+      fields: [
+        ['Economic Downturn', getV('stress-econ') || '—'],
+        ['Regulatory Change', getV('stress-reg') || '—'],
+        ['Technology / Service Disruptions', getV('stress-tech') || '—'],
+        ['Staff Turnover', getV('stress-staff') || '—'],
+        ['Volume Spikes (3x)', getV('stress-volume') || '—'],
+      ]
+    },
+    {
+      title: 'SECTION 9 — Validation',
+      fields: [
+        ['Q55. Validation Method', getV('q-validation') || '—'],
+        ['Q56. Metric Maturity', validRows.length >= 18 ? 'Mature (18+ periods)' : validRows.length >= 6 ? 'Established (6–17 periods)' : 'New (<6 periods)'],
+        ['Q57. Review Cadence', 'Quarterly (default)'],
+        ['Q58. Re-evaluation Triggers', 'Risk appetite change; significant incident; data source change; sustained threshold breach'],
+      ]
+    },
+    {
+      title: 'SECTION 10 — Reporting',
+      fields: [
+        ['Perpetually Green Action', 'Re-threshold after 12 consecutive Green periods'],
+      ]
+    }
+  ];
+
+  const body = document.getElementById('out-body');
+  body.innerHTML = `
+    <div class="out-sec">
+      <div class="out-sec-title">Historical Data — ${validRows.length} Periods</div>
+      ${periodRows}
+    </div>
+    ` + sections.map(sec =>
+    `<div class="out-sec">
+      <div class="out-sec-title">${sec.title}</div>
+      ${sec.fields.map(([key, val, raw]) => {
+        const display = raw || (val ? String(val).replace(/\n/g, '<br>') : '—');
+        const isFormula = key.includes('Formula Statement');
+        return `<div class="out-field">
+          <span class="out-key">${key}</span>
+          <span class="out-val">${isFormula ? `<span class="out-formula">${display}</span>` : display}</span>
+        </div>`;
+      }).join('')}
+    </div>`
+  ).join('');
+
+  window._outData = { sections, m, stats, thr, validRows, labels, dir, cat };
+}
+
+// ════════════════════════════════════════════════════════════════
+// DOWNLOAD
+// ════════════════════════════════════════════════════════════════
+function downloadMd() {
+  const d = window._outData;
+  if (!d) return;
+  const { m, stats, thr, validRows, labels, dir, cat } = d;
+
+  const lines = [
+    `# KRI Specification: ${getV('q-name')}`,
+    `*Generated by KRI Data Builder — ${new Date().toLocaleDateString()}*`,
+    `*Based on ${validRows.length} periods of actual data (${labels[0]} – ${labels[labels.length-1]})*`,
+    '',
+    '## Risk Context',
+    `**Risk Statement:** ${getV('q-risk')}`,
+    `**Primary Category:** ${cat}`,
+    `**Signal Type:** ${getR('q-signal')}`,
+    '',
+    '## Historical Data',
+    `| Period | Numerator | ${S.hasDenom ? 'Denominator | ' : ''}${m.unit} | Risk Level |`,
+    `|--------|-----------|${S.hasDenom ? '------------|' : ''}${'-'.repeat(m.unit.length + 2)}|------------|`
+  ];
+
+  m.values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const r = validRows[i];
+    const rag = getRAG(v, thr, dir);
+    let row = `| ${r.label} | ${parseFloat(r.num).toLocaleString()} | `;
+    if (S.hasDenom) row += `${parseFloat(r.denom).toLocaleString()} | `;
+    row += `${formatVal(v, m.unit)} | ${rag.label} |`;
+    lines.push(row);
+  });
+
+  lines.push('', '## Formula');
+  lines.push(`**Method:** ${m.name}`);
+  lines.push(`**Formula:** ${m.formula}`);
+  lines.push(`**Unit:** ${m.unit}`);
+  lines.push(`**Direction:** ${dir === 'higher' ? 'Higher is worse' : 'Lower is worse'}`);
+
+  const thrMethodLabel = (THR_METHODS[S.thrMethod] || THR_METHODS.percentile).name;
+  lines.push('', '## Thresholds (Green / Yellow / Red)');
+  lines.push(`**Derivation Method:** ${thrMethodLabel}`);
+  if (S.thrMethod === 'constraint' && S.constraintLimit !== null) {
+    lines.push(`**External Limit:** ${formatVal(S.constraintLimit, m.unit)}`);
+  }
+  lines.push('| Level | Value |');
+  lines.push('|-------|-------|');
+  lines.push(`| Yellow | ${formatVal(thr.yellow, m.unit)} |`);
+  lines.push(`| Red    | ${formatVal(thr.red, m.unit)} |`);
+
+  // Threshold methodology explanation
+  const mdMcfg = THR_METHODS[S.thrMethod] || THR_METHODS.percentile;
+  const mdDerivedThr = S.derivedThr || thr;
+  const mdIsManual = S.thrMethod === 'manual';
+  lines.push('', '### Threshold Methodology');
+  lines.push(`**Method:** ${mdMcfg.name}`);
+  lines.push(`**Formula:** ${mdMcfg.formula(dir)}`);
+  if (S.thrMethod === 'percentile') {
+    lines.push(`**Rationale:** Percentile-based calibration from ${stats.n} periods of actual data. ${dir === 'lower' ? 'Yellow at the 25th percentile, Red at the 10th percentile (inverted for lower-is-worse).' : 'Yellow at the 75th percentile, Red at the 90th percentile.'} Best for operational metrics without external regulatory limits.`);
+  } else if (S.thrMethod === 'sigma') {
+    lines.push(`**Rationale:** Standard deviation bands from ${stats.n} periods. Mean: ${formatVal(stats.mean, m.unit)}, Std Dev: ${formatVal(stats.std, m.unit)}. ${dir === 'lower' ? 'Yellow = mean - 1 std dev, Red = mean - 2 std dev.' : 'Yellow = mean + 1 std dev, Red = mean + 2 std dev.'} Best for metrics with stable, symmetric operating ranges.`);
+  } else if (S.thrMethod === 'constraint') {
+    const mdLimitVal = S.constraintLimit !== null ? formatVal(S.constraintLimit, m.unit) : 'N/A';
+    lines.push(`**Rationale:** Anchored to external limit of ${mdLimitVal}. ${dir === 'lower' ? 'Yellow = limit x 1.25 (25% buffer), Red = limit x 1.10 (10% buffer).' : 'Yellow = 75% of limit (25% buffer to breach), Red = 90% of limit (10% buffer to breach).'} Tied to real consequences — most defensible in regulatory exams and audit.`);
+  } else {
+    lines.push(`**Rationale:** Expert judgment — thresholds entered directly based on risk appetite statements, board approvals, or institutional expertise. Document rationale for auditability.`);
+  }
+
+  // Override documentation
+  if (!mdIsManual) {
+    const mdOverrides = ['yellow', 'red'].filter(k => Math.abs(thr[k] - mdDerivedThr[k]) > 0.00001);
+    if (mdOverrides.length > 0) {
+      lines.push('', '### Threshold Overrides');
+      lines.push(`${mdOverrides.length} threshold(s) manually adjusted from calculated values:`);
+      lines.push('| Zone | Calculated | Approved |');
+      lines.push('|------|-----------|----------|');
+      mdOverrides.forEach(k => {
+        lines.push(`| ${k.charAt(0).toUpperCase() + k.slice(1)} | ${formatVal(mdDerivedThr[k], m.unit)} | ${formatVal(thr[k], m.unit)} |`);
+      });
+    }
+  }
+
+  // Band simulation
+  const mdBandVals = m.values.filter(v => v !== null && !isNaN(v));
+  let mdGreenCt = 0, mdYellowCt = 0, mdRedCt = 0;
+  mdBandVals.forEach(v => {
+    const rag = getRAG(v, thr, dir);
+    if (rag.label === 'Green') mdGreenCt++;
+    else if (rag.label === 'Yellow') mdYellowCt++;
+    else mdRedCt++;
+  });
+  const mdBandN = mdBandVals.length;
+  lines.push('', '### Historical Band Simulation');
+  lines.push(`If these thresholds had been in place across all ${mdBandN} periods:`);
+  lines.push('| Zone | Periods | % |');
+  lines.push('|------|---------|---|');
+  lines.push(`| Green | ${mdGreenCt}/${mdBandN} | ${mdBandN ? Math.round(mdGreenCt / mdBandN * 100) : 0}% |`);
+  lines.push(`| Yellow | ${mdYellowCt}/${mdBandN} | ${mdBandN ? Math.round(mdYellowCt / mdBandN * 100) : 0}% |`);
+  lines.push(`| Red | ${mdRedCt}/${mdBandN} | ${mdBandN ? Math.round(mdRedCt / mdBandN * 100) : 0}% |`);
+
+  lines.push('', '## Risk Impact Strength');
+  lines.push('| Category | Level | Impact % |');
+  lines.push('|----------|-------|----------|');
+  IMPACT_CATS.forEach((ic, i) => {
+    const val = S.impactStrength[i] || 0;
+    if (val > 0) {
+      const lvl = IMPACT_LEVELS.find(l => l.value === val);
+      lines.push(`| ${ic} | ${lvl.value} — ${lvl.label} | ${lvl.pct}% |`);
+    }
+  });
+
+  lines.push('', '## Statistical Summary');
+  lines.push(`| Stat | Value |`);
+  lines.push(`|------|-------|`);
+  lines.push(`| Mean | ${formatVal(stats.mean, m.unit)} |`);
+  lines.push(`| Median | ${formatVal(stats.p50, m.unit)} |`);
+  lines.push(`| Std Dev (sample) | ${formatVal(stats.std, m.unit)} |`);
+  lines.push(`| CV (Volatility) | ${stats.cv !== null ? stats.cv.toFixed(1) + '%' : '—'} |`);
+  lines.push(`| Skewness | ${stats.skewness !== null ? stats.skewness.toFixed(2) : '—'} |`);
+  lines.push(`| Min | ${formatVal(stats.min, m.unit)} |`);
+  lines.push(`| Max | ${formatVal(stats.max, m.unit)} |`);
+  lines.push(`| Latest | ${formatVal(stats.latest, m.unit)} |`);
+  lines.push(`| Trend | ${(() => { const s = stats.std || 1; return stats.slope > s * 0.05 ? 'Rising' : stats.slope < -s * 0.05 ? 'Falling' : 'Stable'; })()} |`);
+  lines.push(`| Consecutive Increases | ${stats.consec} |`);
+  lines.push(`| Latest Velocity | ${stats.vel !== null && stats.vel !== undefined ? (stats.vel > 0 ? '+' : '') + stats.vel.toFixed(1) + '%' : '—'} |`);
+
+  // Period-by-period trend table
+  lines.push('', '### Trend Analysis — Period-by-Period');
+  const mdTStd = stats.std || 1;
+  const mdTrendDir = stats.slope > mdTStd * 0.05 ? 'Rising' : stats.slope < -mdTStd * 0.05 ? 'Falling' : 'Stable';
+  const mdTrendConcern = (dir === 'higher' && mdTrendDir === 'Rising') || (dir === 'lower' && mdTrendDir === 'Falling');
+  const mdTrendFav = (dir === 'higher' && mdTrendDir === 'Falling') || (dir === 'lower' && mdTrendDir === 'Rising');
+  lines.push(`**Trend:** ${mdTrendDir}${mdTrendConcern ? ' — Concerning' : mdTrendFav ? ' — Favorable' : ' — Neutral'}`);
+  lines.push(`**Slope:** ${formatVal(stats.slope, m.unit)} per period`);
+  lines.push('');
+  lines.push('| Period | Value | vs Prior | Risk Level |');
+  lines.push('|--------|-------|----------|------------|');
+  let mdTrendPrior = null;
+  m.values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const r = validRows[i];
+    const rag = getRAG(v, thr, dir);
+    let chg = '—';
+    if (mdTrendPrior !== null && mdTrendPrior !== 0) {
+      const pctChg = ((v - mdTrendPrior) / Math.abs(mdTrendPrior) * 100).toFixed(1);
+      chg = (v > mdTrendPrior ? '+' : '') + pctChg + '%';
+    }
+    lines.push(`| ${r.label} | ${formatVal(v, m.unit)} | ${chg} | ${rag.label} |`);
+    mdTrendPrior = v;
+  });
+
+  // Period-by-period velocity table
+  lines.push('', '### Velocity Analysis — Period-by-Period');
+  const mdVelIsWorsening = (vel) => dir === 'higher' ? vel > 0 : vel < 0;
+  lines.push('| Period | Value | Velocity (%) | Flag | Risk Level |');
+  lines.push('|--------|-------|-------------|------|------------|');
+  let mdVelPrior = null;
+  m.values.forEach((v, i) => {
+    if (v === null || isNaN(v)) return;
+    const r = validRows[i];
+    const rag = getRAG(v, thr, dir);
+    let vel = null;
+    if (mdVelPrior !== null && mdVelPrior !== 0) {
+      vel = (v - mdVelPrior) / Math.abs(mdVelPrior) * 100;
+    }
+    let flag = '—';
+    if (vel !== null) {
+      const worsening = mdVelIsWorsening(vel);
+      const absVel = Math.abs(vel);
+      if (worsening && absVel > 25) flag = 'Spike';
+      else if (worsening && absVel > 15) flag = 'Elevated';
+      else if (!worsening && absVel > 25) flag = 'Improvement';
+    }
+    const velStr = vel !== null ? (vel > 0 ? '+' : '') + vel.toFixed(1) + '%' : '—';
+    lines.push(`| ${r.label} | ${formatVal(v, m.unit)} | ${velStr} | ${flag} | ${rag.label} |`);
+    mdVelPrior = v;
+  });
+
+  lines.push('', '## Actions Required When Breached');
+  lines.push('| Zone | Action |');
+  lines.push('|------|--------|');
+  lines.push(`| Green | ${S.thrActions.green || '—'} |`);
+  lines.push(`| Yellow | ${S.thrActions.yellow || '—'} |`);
+  lines.push(`| Red | ${S.thrActions.red || '—'} |`);
+
+  if (S.thrFormat === 'range') {
+    lines.push('', '## Threshold Ranges');
+    lines.push('| Zone | Low | High |');
+    lines.push('|------|-----|------|');
+    ['green','yellow','red'].forEach(k => {
+      const r = S.thrRanges[k];
+      lines.push(`| ${k.charAt(0).toUpperCase()+k.slice(1)} | ${r.low !== null ? formatVal(r.low, m.unit) : '—'} | ${r.high !== null ? formatVal(r.high, m.unit) : '—'} |`);
+    });
+  }
+
+  lines.push('', '## Metric Relationships');
+  lines.push(`**KRI Correlations:** ${S.corrStatus || '—'}`);
+  if (S.corrStatus === 'Yes' && S.correlations.length) {
+    lines.push('| Metric Name | Direction | Strength | Explanation |');
+    lines.push('|-------------|-----------|----------|-------------|');
+    S.correlations.filter(c => c.name).forEach(c => {
+      lines.push(`| ${c.name} | ${c.direction || '—'} | ${c.strength || '—'} | ${c.explanation || '—'} |`);
+    });
+  }
+  lines.push(`**Linked Controls:** ${S.ctrlStatus || '—'}`);
+  if (S.ctrlStatus === 'Yes' && S.linkedControls.length) {
+    lines.push('| Control Name | Control ID | Relationship | Explanation |');
+    lines.push('|-------------|------------|--------------|-------------|');
+    S.linkedControls.filter(c => c.name).forEach(c => {
+      lines.push(`| ${c.name} | ${c.ctrlId || '—'} | ${c.relationship || '—'} | ${c.explanation || '—'} |`);
+    });
+  }
+
+  lines.push('', '## Stress Scenarios');
+  lines.push(`**Economic Downturn:** ${getV('stress-econ') || '—'}`);
+  lines.push(`**Regulatory Change:** ${getV('stress-reg') || '—'}`);
+  lines.push(`**Technology / Service Disruptions:** ${getV('stress-tech') || '—'}`);
+  lines.push(`**Staff Turnover:** ${getV('stress-staff') || '—'}`);
+  lines.push(`**Volume Spikes (3x):** ${getV('stress-volume') || '—'}`);
+
+  lines.push('', '## Validation Methods');
+  lines.push(getV('q-validation') || '—');
+
+  lines.push('', '## Reporting Period');
+  const rptPeriod = S.reportingPeriod === 'Other' ? (S.reportingPeriodOther || 'Other') : (S.reportingPeriod || '—');
+  lines.push(`**Period:** ${rptPeriod}`);
+  lines.push(`**Justification:** ${getV('q-rpt-justify') || '—'}`);
+
+  lines.push('', '## System of Record');
+  lines.push(getV('q-source'));
+
+  const md = lines.join('\n');
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `KRI_${getV('q-name').replace(/[^a-z0-9]/gi,'_')}_Spec.md`;
+  a.click();
+}
+
+// ════════════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════════════
+function getV(id) { return document.getElementById(id)?.value?.trim() || ''; }
+function getR(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : null; }
+function selR(name, val, el) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(r => r.closest('.opt')?.classList.remove('sel'));
+  el?.classList.add('sel');
+  clearErr('err-' + name.replace('q-',''));
+}
+function clearErr(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function showFerr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (msg) el.textContent = '⚠ ' + msg;
+  el.style.display = 'block';
+}
+
+function formatVal(v, unit) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  if (unit === '%') return v.toFixed(3) + '%';
+  if (unit === 'per 1,000') return v.toFixed(2) + ' per 1k';
+  if (unit === '% change') return (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+  if (unit === '$') return '$' + v.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:2});
+  // Count, Moving Avg, Cumulative — round to reasonable precision
+  if (Number.isInteger(v)) return v.toLocaleString();
+  return v % 1 === 0 ? v.toLocaleString() : v.toFixed(2).replace(/\.?0+$/, '');
+}
+
+// ════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
