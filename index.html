@@ -190,6 +190,64 @@ table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!i
 /* Reporting period */
 .rpt-grid{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
 
+/* Snowflake Modal */
+.sf-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center}
+.sf-modal.show{display:flex}
+.sf-modal-content{background:#fff;border-radius:12px;width:90%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.sf-modal-header{padding:20px 24px;border-bottom:1px solid var(--gray-200);display:flex;align-items:center;justify-content:space-between}
+.sf-modal-header h3{font-size:18px;font-weight:700;color:var(--gray-800)}
+.sf-modal-close{background:none;border:none;font-size:24px;color:var(--gray-400);cursor:pointer;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s}
+.sf-modal-close:hover{background:var(--gray-100);color:var(--gray-800)}
+.sf-modal-body{padding:24px}
+.sf-form-group{margin-bottom:16px}
+.sf-form-group label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--gray-700)}
+.sf-form-group input,.sf-form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:14px;font-family:inherit}
+.sf-form-group textarea{min-height:100px;font-family:'SF Mono',Consolas,monospace;font-size:13px}
+.sf-form-group .sf-help{font-size:12px;color:var(--gray-500);margin-top:4px}
+.sf-btn-group{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--gray-200)}
+.sf-btn{padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;border:none}
+.sf-btn-primary{background:var(--blue);color:#fff}
+.sf-btn-primary:hover{background:var(--blue-d)}
+.sf-btn-primary:disabled{opacity:0.5;cursor:not-allowed}
+.sf-btn-secondary{background:var(--gray-200);color:var(--gray-700)}
+.sf-btn-secondary:hover{background:var(--gray-300)}
+.sf-status{padding:12px;border-radius:6px;margin-bottom:16px;font-size:13px}
+.sf-status.loading{background:var(--blue-l);color:var(--blue-d);border:1px solid var(--blue)}
+.sf-status.success{background:var(--green-l);color:#14532d;border:1px solid var(--green)}
+.sf-status.error{background:var(--red-l);color:#991b1b;border:1px solid var(--red)}
+.sf-load-btn{background:var(--blue);color:#fff;border:1px solid var(--blue);padding:8px 16px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-left:8px}
+.sf-load-btn:hover{background:var(--blue-d)}
+
+/* Wizard Progress */
+.sf-wizard-progress{display:flex;justify-content:space-between;margin-bottom:24px;padding:0 20px}
+.sf-wizard-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative}
+.sf-wizard-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:50%;width:100%;height:2px;background:var(--gray-200);z-index:0}
+.sf-wizard-step.active::after,.sf-wizard-step.completed::after{background:var(--blue)}
+.sf-wizard-step-number{width:32px;height:32px;border-radius:50%;background:var(--gray-200);color:var(--gray-500);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;position:relative;z-index:1;transition:all .2s}
+.sf-wizard-step.active .sf-wizard-step-number{background:var(--blue);color:#fff}
+.sf-wizard-step.completed .sf-wizard-step-number{background:var(--green);color:#fff}
+.sf-wizard-step.completed .sf-wizard-step-number::before{content:'✓'}
+.sf-wizard-step-label{font-size:11px;color:var(--gray-500);margin-top:6px;font-weight:600;text-align:center}
+.sf-wizard-step.active .sf-wizard-step-label{color:var(--blue)}
+.sf-wizard-step.completed .sf-wizard-step-label{color:var(--green)}
+
+/* Wizard Content */
+.sf-wizard-content{display:none}
+.sf-wizard-content h4{font-size:16px;font-weight:700;color:var(--gray-800);margin-bottom:8px}
+.sf-help-text{font-size:13px;color:var(--gray-600);margin-bottom:20px;line-height:1.5}
+.sf-form-group select{width:100%;padding:10px 12px;border:1px solid var(--gray-300);border-radius:6px;font-size:14px;font-family:inherit;background:#fff;cursor:pointer}
+.sf-form-group select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-l)}
+
+/* Preview Table */
+.sf-preview-table-wrapper{max-height:300px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:6px;margin-bottom:12px}
+.sf-preview-table{width:100%;border-collapse:collapse;font-size:13px}
+.sf-preview-table thead{background:var(--gray-50);position:sticky;top:0;z-index:1}
+.sf-preview-table th{padding:10px 12px;text-align:left;font-weight:600;color:var(--gray-700);border-bottom:2px solid var(--gray-200)}
+.sf-preview-table td{padding:8px 12px;border-bottom:1px solid var(--gray-100)}
+.sf-preview-table tbody tr:hover{background:var(--gray-50)}
+.sf-preview-info{background:var(--blue-l);border:1px solid var(--blue);border-radius:6px;padding:12px;font-size:12px;color:var(--blue-d)}
+.sf-preview-info code{background:rgba(255,255,255,0.5);padding:2px 6px;border-radius:3px;font-size:10px}
+
 /* Output panel */
 #output-panel{display:none;animation:fi .3s ease}
 #output-panel.show{display:block}
@@ -389,6 +447,17 @@ table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!i
         </table>
       </div>
       <button class="add-row-btn" onclick="addRow()">+ Add Period</button>
+      <button class="sf-load-btn" onclick="openSnowflakeModal()" title="Temporarily Unavailable" style="opacity:0.5;cursor:not-allowed" disabled>❄️ Load from Snowflake</button>
+      <button class="sf-load-btn" onclick="document.getElementById('spreadsheet-upload').click()" style="background:var(--green);border-color:var(--green)">📄 Upload Spreadsheet</button>
+      <input type="file" id="spreadsheet-upload" accept=".csv,.xlsx,.xls,.tsv" style="display:none" onchange="handleSpreadsheetUpload(event)">
+      <div style="margin-top:10px">
+        <div class="q-label" style="font-size:13px">Or load from Google Sheets</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="text" id="gsheet-url" placeholder="Paste Google Sheets URL (must be publicly shared)" style="flex:1;font-size:13px">
+          <button class="sf-load-btn" onclick="handleGoogleSheetLoad()" style="background:#34a853;border-color:#34a853;white-space:nowrap">Load Sheet</button>
+        </div>
+        <div class="q-help" style="margin-top:4px">Sheet must have columns for Date/Period, Numerator, and Denominator. First row should be headers.</div>
+      </div>
       <div class="ferr" id="err-data"></div>
 
       <div class="data-status" id="data-status">
@@ -501,7 +570,7 @@ table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!i
     <!-- Risk Correlation & Health -->
     <div class="card" id="impact-card">
       <div class="q-label">Risk Impact Strength</div>
-      <div class="q-help">Rate how strongly this metric impacts each risk category. Select an impact level (1–5) for each category. Combined percentages do not need to equal 100%.</div>
+      <div class="q-help">Rate how strongly this metric impacts each risk category. Select "No Impact" or an impact level (1–5) for each category. Combined percentages do not need to equal 100%.</div>
       <div id="risk-impact-strength"></div>
     </div>
 
@@ -546,42 +615,106 @@ table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!i
     <!-- Stress Scenarios -->
     <div class="card" id="stress-card">
       <div class="q-label">Stress Scenarios</div>
-      <div class="q-help">How would this metric behave under adverse conditions?</div>
-      <div class="stress-grid">
-        <div class="stress-row">
-          <div class="stress-label">Economic Downturn</div>
-          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
-          <textarea id="stress-econ" placeholder="e.g. Metric expected to increase 30-50% due to rising delinquencies and reduced consumer spending."></textarea></div>
-        </div>
-        <div class="stress-row">
-          <div class="stress-label">Regulatory Change</div>
-          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
-          <textarea id="stress-reg" placeholder="e.g. New reporting requirements could change the numerator definition, requiring recalibration."></textarea></div>
-        </div>
-        <div class="stress-row">
-          <div class="stress-label">Technology / Service Change or Disruptions</div>
-          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
-          <textarea id="stress-tech" placeholder="e.g. System migration could cause temporary data gaps; metric may spike due to processing backlogs."></textarea></div>
-        </div>
-        <div class="stress-row">
-          <div class="stress-label">Staff Turnover</div>
-          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
-          <textarea id="stress-staff" placeholder="e.g. Loss of experienced staff may increase error rates and processing times."></textarea></div>
-        </div>
-        <div class="stress-row">
-          <div class="stress-label">Volume Spikes (3x)</div>
-          <div style="flex:1"><div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
-          <textarea id="stress-volume" placeholder="e.g. A 3x volume increase would likely push the metric past Red threshold within 1-2 periods."></textarea></div>
-        </div>
+      <div class="q-help">Is the metric expected to perform worse under defined stress scenarios (e.g., economic downturn, workforce reductions, material volume spike, technology or service disruption, regulatory change)?</div>
+      <div class="rel-radio-group" id="stress-radio">
+        <div class="rel-radio" onclick="setStressApplies('Yes',this)">Yes</div>
+        <div class="rel-radio" onclick="setStressApplies('No',this)">No</div>
       </div>
+      <div id="stress-scenarios-wrap" style="display:none">
+        <div style="font-size:12px;color:var(--gray-500);margin-bottom:10px">Select all applicable stress scenarios and describe the expected behavior for each.</div>
+        <div class="stress-grid" id="stress-scenarios-list"></div>
+      </div>
+    </div>
+
+    <!-- How is the metric value produced? -->
+    <div class="card" id="metric-production-card">
+      <div class="q-label">How is the metric value produced? <span class="req">*</span></div>
+      <div class="q-help">Select the method that best describes how this metric's value is generated.</div>
+      <div class="opt-grid">
+        <label class="opt" onclick="setMetricProduction('system', this)">
+          <input type="radio" name="q-metric-prod" value="system">
+          <div>
+            <div class="opt-lbl">System-generated</div>
+            <div class="opt-desc">(lower risk) — Pulled directly from a system with minimal transformation</div>
+          </div>
+        </label>
+        <label class="opt" onclick="setMetricProduction('combination', this)">
+          <input type="radio" name="q-metric-prod" value="combination">
+          <div>
+            <div class="opt-lbl">Combination</div>
+            <div class="opt-desc">(medium risk) — System provides inputs; human applies logic</div>
+          </div>
+        </label>
+        <label class="opt" onclick="setMetricProduction('manual', this)">
+          <input type="radio" name="q-metric-prod" value="manual">
+          <div>
+            <div class="opt-lbl">Manually calculated</div>
+            <div class="opt-desc">(higher risk) — Someone pulls data and calculates</div>
+          </div>
+        </label>
+      </div>
+      <div class="ferr" id="err-metric-prod">Please select how the metric value is produced.</div>
     </div>
 
     <!-- Validation Methods -->
     <div class="card" id="val-methods-card">
       <div class="q-label">Validation Methods <span class="req">*</span></div>
-      <div class="q-help">Which validation methods are or will be used for this metric? How is this metric tested for accuracy?</div>
-      <textarea id="q-validation" placeholder="e.g. Monthly reconciliation against source system reports. Quarterly independent review by 2nd line. Annual back-testing of threshold calibration against actual loss events." oninput="clearErr('err-validation')"></textarea>
-      <div class="ferr" id="err-validation">Validation method is required.</div>
+      <div class="q-help">Which validation methods are or will be used? Select all that apply and provide details (e.g., data system name, report name, data table name) for context.</div>
+      <div class="stress-grid" id="validation-methods-list">
+        <div class="stress-row" style="flex-direction:column;gap:6px;padding:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="val-chk-reconciliation" onchange="toggleValidationMethod('reconciliation', this.checked)" style="width:auto;accent-color:var(--blue)">
+            <div>
+              <span style="font-size:14px;font-weight:600;color:var(--gray-700)">Reconciliation</span>
+              <div style="font-size:12px;color:var(--gray-500)">Checking reported data against the original source systems or independent records to make sure it is complete and accurate.</div>
+            </div>
+          </label>
+          <div id="val-detail-reconciliation" style="display:none;margin-left:26px">
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Describe the process</div>
+            <textarea id="val-txt-reconciliation" placeholder="e.g. Data system name, report name, data table name, reconciliation frequency..." oninput="updateValidationDetail('reconciliation', this.value)" style="width:100%;min-height:56px"></textarea>
+          </div>
+        </div>
+        <div class="stress-row" style="flex-direction:column;gap:6px;padding:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="val-chk-sampling" onchange="toggleValidationMethod('sampling', this.checked)" style="width:auto;accent-color:var(--blue)">
+            <div>
+              <span style="font-size:14px;font-weight:600;color:var(--gray-700)">Statistical Sampling</span>
+              <div style="font-size:12px;color:var(--gray-500)">Reviewing a selection of data records on a periodic basis to check for errors and estimate how accurate the overall data set is.</div>
+            </div>
+          </label>
+          <div id="val-detail-sampling" style="display:none;margin-left:26px">
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Describe the process</div>
+            <textarea id="val-txt-sampling" placeholder="e.g. Data system name, report name, sampling method, frequency..." oninput="updateValidationDetail('sampling', this.value)" style="width:100%;min-height:56px"></textarea>
+          </div>
+        </div>
+        <div class="stress-row" style="flex-direction:column;gap:6px;padding:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="val-chk-backtesting" onchange="toggleValidationMethod('backtesting', this.checked)" style="width:auto;accent-color:var(--blue)">
+            <div>
+              <span style="font-size:14px;font-weight:600;color:var(--gray-700)">Back-testing</span>
+              <div style="font-size:12px;color:var(--gray-500)">Looking back at past reports and comparing them to what actually happened to see how accurate the metric or model was.</div>
+            </div>
+          </label>
+          <div id="val-detail-backtesting" style="display:none;margin-left:26px">
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Describe the process</div>
+            <textarea id="val-txt-backtesting" placeholder="e.g. Data system name, report name, back-testing approach, frequency..." oninput="updateValidationDetail('backtesting', this.value)" style="width:100%;min-height:56px"></textarea>
+          </div>
+        </div>
+        <div class="stress-row" style="flex-direction:column;gap:6px;padding:12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="val-chk-independent" onchange="toggleValidationMethod('independent', this.checked)" style="width:auto;accent-color:var(--blue)">
+            <div>
+              <span style="font-size:14px;font-weight:600;color:var(--gray-700)">Independent Review</span>
+              <div style="font-size:12px;color:var(--gray-500)">Having someone not involved in creating the data review it to ensure the approach, assumptions, and results are reasonable and sound.</div>
+            </div>
+          </label>
+          <div id="val-detail-independent" style="display:none;margin-left:26px">
+            <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Describe the process</div>
+            <textarea id="val-txt-independent" placeholder="e.g. Reviewer role, review frequency, report or system used..." oninput="updateValidationDetail('independent', this.value)" style="width:100%;min-height:56px"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="ferr" id="err-validation">At least one validation method is required.</div>
     </div>
 
     <!-- Reporting Period -->
@@ -634,6 +767,184 @@ table.data-tbl td.computed.na{color:var(--gray-400);background:var(--gray-100)!i
   </div>
 </div>
 
+<!-- ══ SNOWFLAKE MODAL ══ -->
+<div class="sf-modal" id="snowflake-modal">
+  <div class="sf-modal-content">
+    <div class="sf-modal-header">
+      <h3>❄️ Load Data from Snowflake</h3>
+      <button class="sf-modal-close" onclick="closeSnowflakeModal()">×</button>
+    </div>
+    <div class="sf-modal-body">
+      <div id="sf-status-container"></div>
+      
+      <!-- Wizard Progress -->
+      <div class="sf-wizard-progress">
+        <div class="sf-wizard-step active" data-step="1">
+          <div class="sf-wizard-step-number">1</div>
+          <div class="sf-wizard-step-label">Connection</div>
+        </div>
+        <div class="sf-wizard-step" data-step="2">
+          <div class="sf-wizard-step-number">2</div>
+          <div class="sf-wizard-step-label">Select Table</div>
+        </div>
+        <div class="sf-wizard-step" data-step="3">
+          <div class="sf-wizard-step-number">3</div>
+          <div class="sf-wizard-step-label">Map Columns</div>
+        </div>
+        <div class="sf-wizard-step" data-step="4">
+          <div class="sf-wizard-step-number">4</div>
+          <div class="sf-wizard-step-label">Preview</div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Connection -->
+      <div class="sf-wizard-content" id="sf-step-1" style="display:block">
+        <h4>📡 Connect to Snowflake</h4>
+        <p class="sf-help-text">Enter your Snowflake connection details. Don't worry - we'll guide you through each step!</p>
+        
+        <div class="sf-form-group">
+          <label>🏢 Account Identifier</label>
+          <input type="text" id="sf-account" placeholder="e.g. xy12345.us-east-1">
+          <div class="sf-help">Find this in your Snowflake URL: https://<strong>xy12345.us-east-1</strong>.snowflakecomputing.com</div>
+        </div>
+        
+        <div class="sf-form-group">
+          <label>👤 Username</label>
+          <input type="text" id="sf-username" placeholder="Your Snowflake username">
+        </div>
+        
+        <div class="sf-form-group">
+          <label>🔒 Password</label>
+          <input type="password" id="sf-password" placeholder="Your Snowflake password">
+        </div>
+        
+        <div class="sf-form-group">
+          <label>🏭 Warehouse</label>
+          <input type="text" id="sf-warehouse" placeholder="e.g. COMPUTE_WH">
+          <div class="sf-help">The compute warehouse to use (ask your Snowflake admin if unsure)</div>
+        </div>
+        
+        <div class="sf-form-group">
+          <label>💾 Database</label>
+          <input type="text" id="sf-database" placeholder="e.g. ANALYTICS" onchange="sfDatabaseChanged()">
+          <div class="sf-help">The database containing your KRI data</div>
+        </div>
+        
+        <div class="sf-form-group">
+          <label>📂 Schema</label>
+          <input type="text" id="sf-schema" placeholder="e.g. PUBLIC" onchange="sfSchemaChanged()">
+          <div class="sf-help">The schema within your database (usually PUBLIC)</div>
+        </div>
+
+        <div class="sf-btn-group">
+          <button class="sf-btn sf-btn-secondary" onclick="closeSnowflakeModal()">Cancel</button>
+          <button class="sf-btn sf-btn-primary" onclick="sfGoToStep2()">Next: Select Table →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: Select Table -->
+      <div class="sf-wizard-content" id="sf-step-2" style="display:none">
+        <h4>📊 Select Your Data Table</h4>
+        <p class="sf-help-text">Choose the table that contains your KRI period data</p>
+        
+        <div class="sf-form-group">
+          <label>📋 Available Tables</label>
+          <select id="sf-table-select" onchange="sfTableSelected()">
+            <option value="">-- Select a table --</option>
+          </select>
+          <div class="sf-help">We'll automatically load the list of tables from your database</div>
+        </div>
+
+        <div id="sf-table-info" style="display:none" class="note info">
+          <strong>Table Preview:</strong><br>
+          <div id="sf-table-details"></div>
+        </div>
+
+        <div class="sf-btn-group">
+          <button class="sf-btn sf-btn-secondary" onclick="sfGoToStep1()">← Back</button>
+          <button class="sf-btn sf-btn-primary" id="sf-step2-next" disabled onclick="sfGoToStep3()">Next: Map Columns →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3: Map Columns -->
+      <div class="sf-wizard-content" id="sf-step-3" style="display:none">
+        <h4>🗺️ Map Your Columns</h4>
+        <p class="sf-help-text">Tell us which columns contain your period labels, numerators, and denominators</p>
+        
+        <div class="sf-form-group">
+          <label>📅 Period Label Column</label>
+          <select id="sf-col-label">
+            <option value="">-- Select column --</option>
+          </select>
+          <div class="sf-help">The column with period names like "Jan 2024" or "Q1 2024"</div>
+        </div>
+
+        <div class="sf-form-group">
+          <label>🔢 Numerator Column</label>
+          <select id="sf-col-numerator">
+            <option value="">-- Select column --</option>
+          </select>
+          <div class="sf-help">The column with your numerator values (top number in the ratio)</div>
+        </div>
+
+        <div class="sf-form-group">
+          <label>➗ Denominator Column (Optional)</label>
+          <select id="sf-col-denominator">
+            <option value="">-- None (no denominator) --</option>
+          </select>
+          <div class="sf-help">The column with your denominator values (bottom number in the ratio), or leave blank</div>
+        </div>
+
+        <div class="sf-form-group">
+          <label>📊 Sort By (Optional)</label>
+          <select id="sf-col-sort">
+            <option value="">-- Use table order --</option>
+          </select>
+          <div class="sf-help">Choose a column to sort your data (usually a date column)</div>
+        </div>
+
+        <div class="sf-btn-group">
+          <button class="sf-btn sf-btn-secondary" onclick="sfGoToStep2()">← Back</button>
+          <button class="sf-btn sf-btn-primary" id="sf-step3-next" disabled onclick="sfGoToStep4()">Next: Preview Data →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4: Preview -->
+      <div class="sf-wizard-content" id="sf-step-4" style="display:none">
+        <h4>👀 Preview Your Data</h4>
+        <p class="sf-help-text">Review the data before loading it into your KRI builder</p>
+        
+        <div id="sf-preview-container">
+          <div class="sf-preview-table-wrapper">
+            <table class="sf-preview-table" id="sf-preview-table">
+              <thead>
+                <tr>
+                  <th>Period Label</th>
+                  <th>Numerator</th>
+                  <th>Denominator</th>
+                </tr>
+              </thead>
+              <tbody id="sf-preview-body">
+                <tr><td colspan="3" style="text-align:center;padding:20px;color:#999">Loading preview...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="sf-preview-info">
+            <strong>📊 Data Summary:</strong>
+            <div id="sf-preview-summary"></div>
+          </div>
+        </div>
+
+        <div class="sf-btn-group">
+          <button class="sf-btn sf-btn-secondary" onclick="sfGoToStep3()">← Back</button>
+          <button class="sf-btn sf-btn-primary" id="sf-load-btn" onclick="sfLoadData()">✓ Load Data into KRI Builder</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════
 // STATE
@@ -657,6 +968,10 @@ const S = {
   correlations: [],       // [{name,direction,strength,explanation}]
   ctrlStatus: null,       // 'Yes','No','Unknown'
   linkedControls: [],     // [{name,id,relationship,explanation}]
+  stressApplies: null,    // 'Yes' or 'No'
+  stressScenarios: {},    // { economic: {selected:bool, behavior:''}, ... }
+  metricProduction: null, // 'system','combination','manual'
+  validationMethods: {},  // { reconciliation:{selected:bool,detail:''}, ... }
   reportingPeriod: null,
   reportingPeriodOther: '',
   stats: {},
@@ -748,6 +1063,251 @@ function updateTableHeaders() {
   const dl = document.getElementById('q-denom-label').value || 'Denominator';
   document.getElementById('th-num').textContent = nl;
   document.getElementById('th-denom').textContent = dl;
+}
+
+// ════════════════════════════════════════════════════════════════
+// SPREADSHEET / GOOGLE SHEET UPLOAD
+// ════════════════════════════════════════════════════════════════
+
+function clearAllRows() {
+  S.rows = [];
+  document.getElementById('data-tbody').innerHTML = '';
+  rowIdx = 0;
+}
+
+function populateRowsFromParsed(data) {
+  clearAllRows();
+  data.forEach(d => {
+    addRow();
+    const id = S.rows[S.rows.length - 1].id;
+    const lblInput = document.getElementById(`lbl-${id}`);
+    const numInput = document.getElementById(`num-${id}`);
+    const denomInput = document.getElementById(`denom-${id}`);
+    if (lblInput) { lblInput.value = d.label; setRowVal(id, 'label', d.label); }
+    if (numInput) { numInput.value = d.num; setRowVal(id, 'num', String(d.num)); }
+    if (denomInput && d.denom !== null && d.denom !== undefined && d.denom !== '') {
+      denomInput.value = d.denom;
+      setRowVal(id, 'denom', String(d.denom));
+    }
+  });
+  recalcPreview();
+  updateDataStatus();
+}
+
+function guessColumns(headers) {
+  const lower = headers.map(h => (h || '').toString().toLowerCase().trim());
+  let dateCol = -1, numCol = -1, denomCol = -1;
+
+  // Date/Period column
+  for (let i = 0; i < lower.length; i++) {
+    if (/date|period|month|quarter|year|time|week/i.test(lower[i])) { dateCol = i; break; }
+  }
+
+  // Numerator column
+  for (let i = 0; i < lower.length; i++) {
+    if (/numerator|numer|count|events?|incidents?|errors?|num\b/i.test(lower[i])) { numCol = i; break; }
+  }
+
+  // Denominator column
+  for (let i = 0; i < lower.length; i++) {
+    if (/denominator|denom|total|population|base|volume/i.test(lower[i])) { denomCol = i; break; }
+  }
+
+  // Fallback: first col = date, second = num, third = denom
+  if (dateCol === -1) dateCol = 0;
+  if (numCol === -1) numCol = Math.min(1, headers.length - 1);
+  if (denomCol === -1 && headers.length > 2) denomCol = 2;
+
+  return { dateCol, numCol, denomCol };
+}
+
+function parseCSVText(text) {
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+  if (lines.length < 2) { alert('File must have a header row and at least one data row.'); return; }
+
+  // Detect delimiter
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+
+  function splitRow(line) {
+    const result = [];
+    let inQuote = false, current = '';
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuote = !inQuote; continue; }
+      if (ch === delim && !inQuote) { result.push(current.trim()); current = ''; continue; }
+      current += ch;
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  const headers = splitRow(lines[0]);
+  const { dateCol, numCol, denomCol } = guessColumns(headers);
+
+  showColumnMapper(headers, dateCol, numCol, denomCol, lines.slice(1).map(splitRow));
+}
+
+function showColumnMapper(headers, defaultDate, defaultNum, defaultDenom, dataRows) {
+  const existing = document.getElementById('col-mapper-modal');
+  if (existing) existing.remove();
+
+  const optionsHtml = (selIdx) => headers.map((h, i) =>
+    `<option value="${i}" ${i === selIdx ? 'selected' : ''}>${h || 'Column ' + (i+1)}</option>`
+  ).join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'col-mapper-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1001;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:12px;width:90%;max-width:500px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:4px">Map Spreadsheet Columns</h3>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:20px">We auto-detected columns — adjust if needed.</p>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px">📅 Date / Period Column</label>
+        <select id="map-date" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">${optionsHtml(defaultDate)}</select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px">🔢 Numerator Column</label>
+        <select id="map-num" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">${optionsHtml(defaultNum)}</select>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:13px;font-weight:600;margin-bottom:4px">➗ Denominator Column (optional)</label>
+        <select id="map-denom" style="width:100%;padding:9px 12px;border:1px solid #d1d5db;border-radius:6px;font-size:14px">
+          <option value="-1">— None —</option>
+          ${headers.map((h, i) => `<option value="${i}" ${i === defaultDenom ? 'selected' : ''}>${h || 'Column ' + (i+1)}</option>`).join('')}
+        </select>
+      </div>
+      <div id="map-preview" style="max-height:150px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:16px;font-size:12px"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button onclick="document.getElementById('col-mapper-modal').remove()" style="padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:#e5e7eb;color:#374151">Cancel</button>
+        <button id="map-confirm-btn" style="padding:10px 20px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;border:none;background:#16a34a;color:#fff">Load ${dataRows.length} Rows</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  function updatePreview() {
+    const dc = +document.getElementById('map-date').value;
+    const nc = +document.getElementById('map-num').value;
+    const dnc = +document.getElementById('map-denom').value;
+    const preview = dataRows.slice(0, 4).map(r =>
+      `<tr><td style="padding:4px 8px">${r[dc]||''}</td><td style="padding:4px 8px">${r[nc]||''}</td><td style="padding:4px 8px">${dnc >= 0 ? (r[dnc]||'') : '—'}</td></tr>`
+    ).join('');
+    document.getElementById('map-preview').innerHTML = `<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#f3f4f6"><th style="padding:4px 8px;text-align:left;font-weight:600">Date</th><th style="padding:4px 8px;text-align:left;font-weight:600">Numerator</th><th style="padding:4px 8px;text-align:left;font-weight:600">Denominator</th></tr></thead><tbody>${preview}</tbody></table>`;
+  }
+  updatePreview();
+  document.getElementById('map-date').onchange = updatePreview;
+  document.getElementById('map-num').onchange = updatePreview;
+  document.getElementById('map-denom').onchange = updatePreview;
+
+  document.getElementById('map-confirm-btn').onclick = function() {
+    const dc = +document.getElementById('map-date').value;
+    const nc = +document.getElementById('map-num').value;
+    const dnc = +document.getElementById('map-denom').value;
+
+    const parsed = dataRows
+      .filter(r => r[dc] && r[nc] !== undefined && r[nc] !== '')
+      .map(r => ({
+        label: String(r[dc] || '').trim(),
+        num: parseFloat(String(r[nc]).replace(/[^0-9.\-]/g, '')) || 0,
+        denom: dnc >= 0 ? (parseFloat(String(r[dnc]).replace(/[^0-9.\-]/g, '')) || 0) : ''
+      }));
+
+    if (parsed.length === 0) { alert('No valid data rows found.'); return; }
+
+    if (dnc >= 0 && !S.hasDenom) {
+      document.querySelector('label.opt[onclick*="yes"]')?.click();
+    } else if (dnc < 0 && S.hasDenom) {
+      document.querySelector('label.opt[onclick*="no"]')?.click();
+    }
+
+    populateRowsFromParsed(parsed);
+    modal.remove();
+  };
+}
+
+function handleSpreadsheetUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'csv' || ext === 'tsv') {
+    const reader = new FileReader();
+    reader.onload = e => parseCSVText(e.target.result);
+    reader.readAsText(file);
+  } else if (ext === 'xlsx' || ext === 'xls') {
+    parseExcelFile(file);
+  } else {
+    alert('Unsupported file type. Please upload .csv, .tsv, .xlsx, or .xls');
+  }
+}
+
+function parseExcelFile(file) {
+  // Load SheetJS library dynamically if not present
+  if (typeof XLSX === 'undefined') {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js';
+    script.onload = () => doParseExcel(file);
+    script.onerror = () => alert('Could not load Excel parser library. Please try uploading a .csv file instead.');
+    document.head.appendChild(script);
+  } else {
+    doParseExcel(file);
+  }
+}
+
+function doParseExcel(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_csv(ws);
+      parseCSVText(data);
+    } catch (err) {
+      alert('Error reading Excel file: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function handleGoogleSheetLoad() {
+  const url = document.getElementById('gsheet-url').value.trim();
+  if (!url) { alert('Please paste a Google Sheets URL.'); return; }
+
+  // Extract sheet ID from various Google Sheets URL formats
+  let sheetId = null;
+  const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (match) sheetId = match[1];
+  if (!sheetId) { alert('Invalid Google Sheets URL. Please paste a full URL like:\nhttps://docs.google.com/spreadsheets/d/SHEET_ID/edit'); return; }
+
+  // Extract gid if present
+  let gid = '0';
+  const gidMatch = url.match(/gid=(\d+)/);
+  if (gidMatch) gid = gidMatch[1];
+
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+
+  const btn = document.querySelector('[onclick="handleGoogleSheetLoad()"]');
+  const origText = btn.textContent;
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+
+  fetch(csvUrl)
+    .then(resp => {
+      if (!resp.ok) throw new Error('Could not fetch sheet. Make sure it is shared as "Anyone with the link" can view.');
+      return resp.text();
+    })
+    .then(csv => {
+      parseCSVText(csv);
+      btn.textContent = origText;
+      btn.disabled = false;
+    })
+    .catch(err => {
+      alert(err.message);
+      btn.textContent = origText;
+      btn.disabled = false;
+    });
 }
 
 function getValidRows() {
@@ -1895,6 +2455,7 @@ function drawPreviewChart(labels, values, minV, maxV, unit) {
 const IMPACT_CATS = ['Strategic','Liquidity','Market/Interest Rate','Credit','Operational','Regulatory and Compliance'];
 const IMPACT_LEVELS = [
   { value: 0, label: '-- Select --', pct: 0 },
+  { value: -1, label: 'No Impact', pct: 0, noImpact: true },
   { value: 1, label: 'Very Low', pct: 20 },
   { value: 2, label: 'Low', pct: 40 },
   { value: 3, label: 'Moderate', pct: 60 },
@@ -1920,13 +2481,15 @@ function buildRiskImpactStrength() {
     const curVal = S.impactStrength[i] || 0;
     const curLevel = IMPACT_LEVELS.find(l => l.value === curVal) || IMPACT_LEVELS[0];
     const options = IMPACT_LEVELS.map(l =>
-      `<option value="${l.value}"${l.value === curVal ? ' selected' : ''}>${l.value === 0 ? l.label : l.value + ' — ' + l.label + ' (' + l.pct + '%)'}</option>`
+      `<option value="${l.value}"${l.value === curVal ? ' selected' : ''}>${l.value === 0 ? l.label : l.noImpact ? l.label : l.value + ' — ' + l.label + ' (' + l.pct + '%)'}</option>`
     ).join('');
-    const pctColor = curLevel.pct >= 80 ? 'var(--red)' : curLevel.pct >= 60 ? 'var(--yellow)' : curLevel.pct > 0 ? 'var(--green)' : 'var(--gray-400)';
+    const isNoImpact = curLevel.noImpact;
+    const pctColor = isNoImpact ? 'var(--gray-400)' : curLevel.pct >= 80 ? 'var(--red)' : curLevel.pct >= 60 ? 'var(--yellow)' : curLevel.pct > 0 ? 'var(--green)' : 'var(--gray-400)';
+    const pctDisplay = isNoImpact ? 'No Impact' : curVal > 0 ? curLevel.pct + '%' : '—';
     html += `<tr>
       <td style="font-weight:600">${cat}</td>
       <td><select id="impact-sel-${i}" onchange="updateImpact(${i}, this.value)">${options}</select></td>
-      <td class="impact-pct" style="color:${pctColor}">${curVal > 0 ? curLevel.pct + '%' : '—'}</td>
+      <td class="impact-pct" style="color:${pctColor}">${pctDisplay}</td>
     </tr>`;
   });
 
@@ -1936,10 +2499,10 @@ function buildRiskImpactStrength() {
   let ratedCount = 0, totalPct = 0;
   IMPACT_CATS.forEach((_, i) => {
     const val = S.impactStrength[i] || 0;
-    if (val > 0) {
+    if (val !== 0) {
       ratedCount++;
       const lvl = IMPACT_LEVELS.find(l => l.value === val);
-      totalPct += lvl ? lvl.pct : 0;
+      if (lvl && !lvl.noImpact) totalPct += lvl.pct;
     }
   });
   const avgPct = ratedCount > 0 ? Math.round(totalPct / ratedCount) : 0;
@@ -2047,6 +2610,103 @@ function setCtrlVal(id, field, val) {
 function delCtrlRow(id) {
   S.linkedControls = S.linkedControls.filter(r => r.id !== id);
   document.getElementById(`ctrl-row-${id}`)?.remove();
+}
+
+// ════════════════════════════════════════════════════════════════
+// METRIC PRODUCTION METHOD
+// ════════════════════════════════════════════════════════════════
+function setMetricProduction(val, el) {
+  S.metricProduction = val;
+  document.querySelectorAll('#metric-production-card .opt').forEach(o => o.classList.remove('sel'));
+  el.classList.add('sel');
+  clearErr('err-metric-prod');
+}
+
+// ════════════════════════════════════════════════════════════════
+// VALIDATION METHODS
+// ════════════════════════════════════════════════════════════════
+const VALIDATION_METHODS = {
+  reconciliation: 'Reconciliation',
+  sampling: 'Statistical Sampling',
+  backtesting: 'Back-testing',
+  independent: 'Independent Review'
+};
+
+function toggleValidationMethod(key, checked) {
+  if (!S.validationMethods[key]) S.validationMethods[key] = { selected: false, detail: '' };
+  S.validationMethods[key].selected = checked;
+  document.getElementById(`val-detail-${key}`).style.display = checked ? 'block' : 'none';
+  clearErr('err-validation');
+}
+
+function updateValidationDetail(key, val) {
+  if (!S.validationMethods[key]) S.validationMethods[key] = { selected: true, detail: '' };
+  S.validationMethods[key].detail = val;
+}
+
+function getSelectedValidationMethods() {
+  return Object.entries(S.validationMethods)
+    .filter(([_, v]) => v.selected)
+    .map(([key, v]) => ({ key, label: VALIDATION_METHODS[key], detail: v.detail || '' }));
+}
+
+function hasAnyValidationMethod() {
+  return Object.values(S.validationMethods).some(v => v.selected);
+}
+
+// ════════════════════════════════════════════════════════════════
+// STRESS SCENARIOS
+// ════════════════════════════════════════════════════════════════
+const STRESS_SCENARIOS = [
+  { key: 'economic', label: 'Economic Downturn', placeholder: 'e.g. Metric expected to increase 30-50% due to rising delinquencies and reduced consumer spending.' },
+  { key: 'workforce', label: 'Workforce Reductions', placeholder: 'e.g. Loss of experienced staff may increase error rates and processing times.' },
+  { key: 'volume', label: 'Material Volume Spike', placeholder: 'e.g. A 3x volume increase would likely push the metric past Red threshold within 1-2 periods.' },
+  { key: 'technology', label: 'Technology or Service Disruption', placeholder: 'e.g. System migration could cause temporary data gaps; metric may spike due to processing backlogs.' },
+  { key: 'regulatory', label: 'Regulatory Change', placeholder: 'e.g. New reporting requirements could change the numerator definition, requiring recalibration.' },
+  { key: 'other', label: 'Other', placeholder: 'Describe the stress scenario and the expected behavior.' }
+];
+
+function setStressApplies(val, el) {
+  S.stressApplies = val;
+  document.querySelectorAll('#stress-radio .rel-radio').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('stress-scenarios-wrap').style.display = val === 'Yes' ? 'block' : 'none';
+  if (val === 'Yes') buildStressScenarios();
+}
+
+function buildStressScenarios() {
+  const wrap = document.getElementById('stress-scenarios-list');
+  if (!wrap) return;
+  let html = '';
+  STRESS_SCENARIOS.forEach(sc => {
+    const data = S.stressScenarios[sc.key] || { selected: false, behavior: '' };
+    html += `<div class="stress-row" style="flex-direction:column;gap:6px;padding:12px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="stress-chk-${sc.key}" ${data.selected ? 'checked' : ''}
+          onchange="toggleStressScenario('${sc.key}', this.checked)"
+          style="width:auto;accent-color:var(--blue)">
+        <span style="font-size:14px;font-weight:600;color:var(--gray-700)">${sc.label}</span>
+      </label>
+      <div id="stress-detail-${sc.key}" style="display:${data.selected ? 'block' : 'none'};margin-left:26px">
+        <div style="font-size:11px;font-weight:600;color:var(--gray-500);margin-bottom:4px">Expected Behavior</div>
+        <textarea id="stress-txt-${sc.key}" placeholder="${sc.placeholder}"
+          oninput="updateStressBehavior('${sc.key}', this.value)"
+          style="width:100%;min-height:56px">${data.behavior || ''}</textarea>
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+function toggleStressScenario(key, checked) {
+  if (!S.stressScenarios[key]) S.stressScenarios[key] = { selected: false, behavior: '' };
+  S.stressScenarios[key].selected = checked;
+  document.getElementById(`stress-detail-${key}`).style.display = checked ? 'block' : 'none';
+}
+
+function updateStressBehavior(key, val) {
+  if (!S.stressScenarios[key]) S.stressScenarios[key] = { selected: true, behavior: '' };
+  S.stressScenarios[key].behavior = val;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -2236,7 +2896,8 @@ function validateStep(n) {
     if (!S.thrActions.green?.trim()) errs.push('Actions required for Green zone');
     if (!S.thrActions.yellow?.trim()) errs.push('Actions required for Yellow zone');
     if (!S.thrActions.red?.trim()) errs.push('Actions required for Red zone');
-    if (!getV('q-validation')) { showFerr('err-validation'); errs.push('Validation method'); }
+    if (!hasAnyValidationMethod()) { showFerr('err-validation'); errs.push('Validation method'); }
+    if (!S.metricProduction) { showFerr('err-metric-prod'); errs.push('Metric production method'); }
     if (!S.reportingPeriod) { showFerr('err-rpt-period'); errs.push('Reporting period'); }
     if (!getV('q-rpt-justify')) { showFerr('err-rpt-justify'); errs.push('Reporting period justification'); }
     if (!getV('q-source')) { showFerr('err-source'); errs.push('System of record'); }
@@ -2283,6 +2944,7 @@ function generateOutput() {
     const val = S.impactStrength[i] || 0;
     if (val === 0) return null;
     const lvl = IMPACT_LEVELS.find(l => l.value === val);
+    if (lvl && lvl.noImpact) return [ic, 'No Impact'];
     return [ic, `${lvl.value} — ${lvl.label} (${lvl.pct}%)`];
   }).filter(Boolean);
 
@@ -2418,17 +3080,23 @@ function generateOutput() {
     {
       title: 'SECTION 8.6 — Stress Scenarios',
       fields: [
-        ['Economic Downturn', getV('stress-econ') || '—'],
-        ['Regulatory Change', getV('stress-reg') || '—'],
-        ['Technology / Service Disruptions', getV('stress-tech') || '—'],
-        ['Staff Turnover', getV('stress-staff') || '—'],
-        ['Volume Spikes (3x)', getV('stress-volume') || '—'],
+        ['Stress Applies', S.stressApplies || '—'],
+        ...STRESS_SCENARIOS.filter(sc => S.stressScenarios[sc.key]?.selected).map(sc =>
+          [sc.label, S.stressScenarios[sc.key]?.behavior || '—']
+        ),
+      ]
+    },
+    {
+      title: 'SECTION 8.7 — How is the metric value produced?',
+      fields: [
+        ['Production Method', S.metricProduction === 'system' ? 'System-generated (lower risk)' : S.metricProduction === 'combination' ? 'Combination (medium risk)' : S.metricProduction === 'manual' ? 'Manually calculated (higher risk)' : '—'],
       ]
     },
     {
       title: 'SECTION 9 — Validation',
       fields: [
-        ['Q55. Validation Method', getV('q-validation') || '—'],
+        ['Q55. Validation Methods', getSelectedValidationMethods().length ? getSelectedValidationMethods().map(m => m.label).join(', ') : '—'],
+        ...getSelectedValidationMethods().map(m => [`↳ ${m.label}`, m.detail || '—']),
         ['Q56. Metric Maturity', validRows.length >= 18 ? 'Mature (18+ periods)' : validRows.length >= 6 ? 'Established (6–17 periods)' : 'New (<6 periods)'],
         ['Q57. Review Cadence', 'Quarterly (default)'],
         ['Q58. Re-evaluation Triggers', 'Risk appetite change; significant incident; data source change; sustained threshold breach'],
@@ -2570,9 +3238,13 @@ function downloadMd() {
   lines.push('|----------|-------|----------|');
   IMPACT_CATS.forEach((ic, i) => {
     const val = S.impactStrength[i] || 0;
-    if (val > 0) {
+    if (val !== 0) {
       const lvl = IMPACT_LEVELS.find(l => l.value === val);
-      lines.push(`| ${ic} | ${lvl.value} — ${lvl.label} | ${lvl.pct}% |`);
+      if (lvl && lvl.noImpact) {
+        lines.push(`| ${ic} | No Impact | — |`);
+      } else {
+        lines.push(`| ${ic} | ${lvl.value} — ${lvl.label} | ${lvl.pct}% |`);
+      }
     }
   });
 
@@ -2679,14 +3351,29 @@ function downloadMd() {
   }
 
   lines.push('', '## Stress Scenarios');
-  lines.push(`**Economic Downturn:** ${getV('stress-econ') || '—'}`);
-  lines.push(`**Regulatory Change:** ${getV('stress-reg') || '—'}`);
-  lines.push(`**Technology / Service Disruptions:** ${getV('stress-tech') || '—'}`);
-  lines.push(`**Staff Turnover:** ${getV('stress-staff') || '—'}`);
-  lines.push(`**Volume Spikes (3x):** ${getV('stress-volume') || '—'}`);
+  lines.push(`**Stress Applies:** ${S.stressApplies || '—'}`);
+  if (S.stressApplies === 'Yes') {
+    STRESS_SCENARIOS.forEach(sc => {
+      const data = S.stressScenarios[sc.key];
+      if (data?.selected) {
+        lines.push(`**${sc.label}:** ${data.behavior || '—'}`);
+      }
+    });
+  }
+
+  lines.push('', '## How is the Metric Value Produced?');
+  const prodLabels = { system: 'System-generated (lower risk)', combination: 'Combination (medium risk)', manual: 'Manually calculated (higher risk)' };
+  lines.push(prodLabels[S.metricProduction] || '—');
 
   lines.push('', '## Validation Methods');
-  lines.push(getV('q-validation') || '—');
+  const selVals = getSelectedValidationMethods();
+  if (selVals.length) {
+    selVals.forEach(m => {
+      lines.push(`**${m.label}:** ${m.detail || '—'}`);
+    });
+  } else {
+    lines.push('—');
+  }
 
   lines.push('', '## Reporting Period');
   const rptPeriod = S.reportingPeriod === 'Other' ? (S.reportingPeriodOther || 'Other') : (S.reportingPeriod || '—');
@@ -2732,6 +3419,332 @@ function formatVal(v, unit) {
   if (Number.isInteger(v)) return v.toLocaleString();
   return v % 1 === 0 ? v.toLocaleString() : v.toFixed(2).replace(/\.?0+$/, '');
 }
+
+// ════════════════════════════════════════════════════════════════
+// SNOWFLAKE INTEGRATION - USER-FRIENDLY WIZARD
+// ════════════════════════════════════════════════════════════════
+
+// Snowflake wizard state
+const SF = {
+  currentStep: 1,
+  connection: { account: '', username: '', password: '', warehouse: '', database: '', schema: '' },
+  tables: [],
+  selectedTable: null,
+  columns: [],
+  columnMapping: { label: '', numerator: '', denominator: '', sort: '' },
+  previewData: []
+};
+
+function openSnowflakeModal() {
+  document.getElementById('snowflake-modal').classList.add('show');
+  sfGoToStep1();
+}
+
+function closeSnowflakeModal() {
+  document.getElementById('snowflake-modal').classList.remove('show');
+}
+
+function showSnowflakeStatus(message, type) {
+  const container = document.getElementById('sf-status-container');
+  container.innerHTML = `<div class="sf-status ${type}">${message}</div>`;
+}
+
+function clearSnowflakeStatus() {
+  document.getElementById('sf-status-container').innerHTML = '';
+}
+
+// Wizard navigation
+function sfGoToStep1() {
+  sfShowStep(1);
+}
+
+function sfGoToStep2() {
+  // Validate step 1
+  const account = document.getElementById('sf-account').value.trim();
+  const username = document.getElementById('sf-username').value.trim();
+  const password = document.getElementById('sf-password').value.trim();
+  const warehouse = document.getElementById('sf-warehouse').value.trim();
+  const database = document.getElementById('sf-database').value.trim();
+  const schema = document.getElementById('sf-schema').value.trim();
+
+  if (!account || !username || !password || !warehouse || !database || !schema) {
+    showSnowflakeStatus('⚠ Please fill in all connection fields', 'error');
+    return;
+  }
+
+  // Save connection info
+  SF.connection = { account, username, password, warehouse, database, schema };
+  
+  // Load tables
+  sfLoadTables();
+  sfShowStep(2);
+}
+
+function sfGoToStep3() {
+  if (!SF.selectedTable) {
+    showSnowflakeStatus('⚠ Please select a table', 'error');
+    return;
+  }
+  sfLoadColumns();
+  sfShowStep(3);
+}
+
+function sfGoToStep4() {
+  const labelCol = document.getElementById('sf-col-label').value;
+  const numCol = document.getElementById('sf-col-numerator').value;
+
+  if (!labelCol || !numCol) {
+    showSnowflakeStatus('⚠ Please select at least Period Label and Numerator columns', 'error');
+    return;
+  }
+
+  SF.columnMapping = {
+    label: labelCol,
+    numerator: numCol,
+    denominator: document.getElementById('sf-col-denominator').value,
+    sort: document.getElementById('sf-col-sort').value
+  };
+
+  sfLoadPreview();
+  sfShowStep(4);
+}
+
+function sfShowStep(step) {
+  SF.currentStep = step;
+  
+  // Hide all steps
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`sf-step-${i}`).style.display = 'none';
+  }
+  
+  // Show current step
+  document.getElementById(`sf-step-${step}`).style.display = 'block';
+  
+  // Update progress indicators
+  document.querySelectorAll('.sf-wizard-step').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === step);
+    el.classList.toggle('completed', i + 1 < step);
+  });
+  
+  clearSnowflakeStatus();
+}
+
+// Database changed - clear table selection
+function sfDatabaseChanged() {
+  SF.tables = [];
+  SF.selectedTable = null;
+  document.getElementById('sf-table-select').innerHTML = '<option value="">-- Select a table --</option>';
+}
+
+// Schema changed - clear table selection
+function sfSchemaChanged() {
+  SF.tables = [];
+  SF.selectedTable = null;
+  document.getElementById('sf-table-select').innerHTML = '<option value="">-- Select a table --</option>';
+}
+
+// Load available tables
+async function sfLoadTables() {
+  showSnowflakeStatus('🔄 Loading tables from Snowflake...', 'loading');
+  
+  try {
+    // SIMULATION: In production, this would query Snowflake's INFORMATION_SCHEMA
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Simulated table list - in production, query: 
+    // SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?
+    SF.tables = [
+      'KRI_MONTHLY_DATA',
+      'RISK_METRICS',
+      'COMPLAINT_VOLUMES',
+      'FRAUD_INCIDENTS',
+      'OPERATIONAL_LOSSES',
+      'CUSTOMER_METRICS'
+    ];
+    
+    const select = document.getElementById('sf-table-select');
+    select.innerHTML = '<option value="">-- Select a table --</option>' +
+      SF.tables.map(t => `<option value="${t}">${t}</option>`).join('');
+    
+    showSnowflakeStatus(`✓ Found ${SF.tables.length} tables in ${SF.connection.database}.${SF.connection.schema}`, 'success');
+  } catch (error) {
+    showSnowflakeStatus(`❌ Error loading tables: ${error.message}`, 'error');
+  }
+}
+
+// Table selected
+function sfTableSelected() {
+  SF.selectedTable = document.getElementById('sf-table-select').value;
+  document.getElementById('sf-step2-next').disabled = !SF.selectedTable;
+  
+  if (SF.selectedTable) {
+    document.getElementById('sf-table-info').style.display = 'block';
+    document.getElementById('sf-table-details').innerHTML = 
+      `<strong>Selected:</strong> ${SF.selectedTable}<br>
+       <span style="font-size:11px;color:var(--gray-500)">Next, you'll map which columns contain your period labels and values</span>`;
+  }
+}
+
+// Load columns from selected table
+async function sfLoadColumns() {
+  showSnowflakeStatus('🔄 Loading columns...', 'loading');
+  
+  try {
+    // SIMULATION: In production, query INFORMATION_SCHEMA.COLUMNS
+    await new Promise(resolve => setTimeout(resolve, 600));
+    
+    // Simulated columns - in production, query:
+    // SELECT COLUMN_NAME, DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?
+    SF.columns = [
+      { name: 'PERIOD_DATE', type: 'DATE' },
+      { name: 'PERIOD_LABEL', type: 'VARCHAR' },
+      { name: 'INCIDENT_COUNT', type: 'NUMBER' },
+      { name: 'TOTAL_CUSTOMERS', type: 'NUMBER' },
+      { name: 'COMPLAINT_COUNT', type: 'NUMBER' },
+      { name: 'TRANSACTION_VOLUME', type: 'NUMBER' }
+    ];
+    
+    // Populate column dropdowns
+    const labelOptions = SF.columns.filter(c => c.type === 'VARCHAR' || c.type === 'DATE')
+      .map(c => `<option value="${c.name}">${c.name} (${c.type})</option>`).join('');
+    const numOptions = SF.columns.filter(c => c.type === 'NUMBER')
+      .map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    const allOptions = SF.columns.map(c => `<option value="${c.name}">${c.name} (${c.type})</option>`).join('');
+    
+    document.getElementById('sf-col-label').innerHTML = '<option value="">-- Select column --</option>' + labelOptions;
+    document.getElementById('sf-col-numerator').innerHTML = '<option value="">-- Select column --</option>' + numOptions;
+    document.getElementById('sf-col-denominator').innerHTML = '<option value="">-- None (no denominator) --</option>' + numOptions;
+    document.getElementById('sf-col-sort').innerHTML = '<option value="">-- Use table order --</option>' + allOptions;
+    
+    // Auto-select smart defaults
+    const periodCol = SF.columns.find(c => c.name.includes('PERIOD') && (c.type === 'VARCHAR' || c.type === 'DATE'));
+    if (periodCol) document.getElementById('sf-col-label').value = periodCol.name;
+    
+    showSnowflakeStatus(`✓ Found ${SF.columns.length} columns in ${SF.selectedTable}`, 'success');
+    
+    // Enable validation
+    sfValidateStep3();
+  } catch (error) {
+    showSnowflakeStatus(`❌ Error loading columns: ${error.message}`, 'error');
+  }
+}
+
+// Validate step 3 column mapping
+function sfValidateStep3() {
+  const labelCol = document.getElementById('sf-col-label').value;
+  const numCol = document.getElementById('sf-col-numerator').value;
+  document.getElementById('sf-step3-next').disabled = !labelCol || !numCol;
+}
+
+// Add change listeners to column selects
+document.addEventListener('DOMContentLoaded', () => {
+  ['sf-col-label', 'sf-col-numerator'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', sfValidateStep3);
+  });
+});
+
+// Load preview data
+async function sfLoadPreview() {
+  showSnowflakeStatus('🔄 Loading data preview...', 'loading');
+  
+  try {
+    // SIMULATION: In production, execute SELECT query with LIMIT 10
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Build the SQL query (for display and actual execution)
+    const { label, numerator, denominator, sort } = SF.columnMapping;
+    let query = `SELECT ${label}, ${numerator}`;
+    if (denominator) query += `, ${denominator}`;
+    query += ` FROM ${SF.connection.database}.${SF.connection.schema}.${SF.selectedTable}`;
+    if (sort) query += ` ORDER BY ${sort}`;
+    query += ` LIMIT 100`;
+    
+    // Simulated data - in production, execute the query above
+    SF.previewData = [
+      ['Jan 2024', 45, 10000],
+      ['Feb 2024', 52, 10500],
+      ['Mar 2024', 38, 11000],
+      ['Apr 2024', 61, 10800],
+      ['May 2024', 47, 11200],
+      ['Jun 2024', 54, 11500]
+    ];
+    
+    // Render preview table
+    const tbody = document.getElementById('sf-preview-body');
+    tbody.innerHTML = SF.previewData.map(row => `
+      <tr>
+        <td>${row[0]}</td>
+        <td>${row[1].toLocaleString()}</td>
+        <td>${row[2] ? row[2].toLocaleString() : '—'}</td>
+      </tr>
+    `).join('');
+    
+    // Summary
+    const summary = `
+      <strong>Rows:</strong> ${SF.previewData.length} periods<br>
+      <strong>Query:</strong> <code style="font-size:10px">${query}</code><br>
+      <strong>Ready to load!</strong> Click "Load Data" to import into your KRI builder.
+    `;
+    document.getElementById('sf-preview-summary').innerHTML = summary;
+    
+    showSnowflakeStatus(`✓ Preview loaded successfully`, 'success');
+  } catch (error) {
+    showSnowflakeStatus(`❌ Error loading preview: ${error.message}`, 'error');
+  }
+}
+
+// Load data into KRI builder
+async function sfLoadData() {
+  showSnowflakeStatus('🔄 Loading data into KRI builder...', 'loading');
+  
+  try {
+    // Clear existing rows
+    S.rows.forEach(row => {
+      document.getElementById(`row-${row.id}`)?.remove();
+    });
+    S.rows = [];
+    rowIdx = 0;
+    
+    // Add rows from Snowflake data
+    SF.previewData.forEach(row => {
+      addRow();
+      const newRow = S.rows[S.rows.length - 1];
+      
+      // Set values
+      document.getElementById(`lbl-${newRow.id}`).value = row[0];
+      document.getElementById(`num-${newRow.id}`).value = row[1];
+      if (row[2] && S.hasDenom) {
+        document.getElementById(`denom-${newRow.id}`).value = row[2];
+      }
+      
+      // Update state
+      newRow.label = row[0];
+      newRow.num = row[1];
+      newRow.denom = row[2] || '';
+    });
+    
+    updateDataStatus();
+    recalcPreview();
+    
+    showSnowflakeStatus(`✓ Successfully loaded ${SF.previewData.length} periods from Snowflake!`, 'success');
+    
+    setTimeout(() => {
+      closeSnowflakeModal();
+    }, 1500);
+    
+  } catch (error) {
+    showSnowflakeStatus(`❌ Error loading data: ${error.message}`, 'error');
+  }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('snowflake-modal');
+  if (e.target === modal) {
+    closeSnowflakeModal();
+  }
+});
 
 // ════════════════════════════════════════════════════════════════
 // BOOT
